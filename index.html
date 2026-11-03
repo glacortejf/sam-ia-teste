@@ -422,12 +422,12 @@ function revisao(){
 }
 function assinatura(){
   var vis=itensVis(),conf=vis.filter(ok).length,msg=getMsg();
-  var sig=S.signed?'<div class="okb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg><div><b>Prontuário assinado</b><br>'+S.signed.quando+' · Dra. Exemplo<br><span class="sub num" style="word-break:break-all">Selo do conteúdo (simulado): '+S.signed.hash+'</span></div></div>':
-    '<div class="sub">A assinatura usa o certificado digital da médica e dá validade legal ao prontuário, à receita e às orientações.</div><button type="button" class="btn lg" data-act="sign" '+(podeAssinar()&&!S.signing?'':'disabled')+'>'+(S.signing?'Assinando…':'Assinar com certificado digital')+'</button>';
+  var sig=S.signed?'<div class="okb"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l3 3 5-6"/></svg><div><b>Prontuário assinado (simulação)</b><br>'+S.signed.quando+' · Dra. Exemplo<br><span class="sub num" style="word-break:break-all">Selo do conteúdo (simulado): '+S.signed.hash+'</span></div></div>':
+    '<div class="sub">Simulação: nesta versão de teste a assinatura não usa certificado ICP-Brasil e não tem validade jurídica. No sistema real, a médica aprovará no aplicativo Bird ID do celular dela.</div><button type="button" class="btn lg" data-act="sign" '+(podeAssinar()&&!S.signing?'':'disabled')+'>'+(S.signing?'Assinando…':'Assinar (simulação)')+'</button>';
   var pend='<div class="card stack"><div class="row wrap"><h2>Pendências e oportunidades</h2></div><div class="sub">Geradas pela IA a partir do que foi dito. Nesta versão de teste, nada é agendado nem enviado de verdade.</div>'+(S.pendAI.length?S.pendAI.map(function(p,i){return '<label class="chk" style="cursor:pointer;align-items:flex-start"><input type="checkbox" data-act="ptog" data-k="'+i+'" '+(p.on?'checked':'')+'><span><b>'+esc(p.titulo)+'</b><br><span class="sub">'+esc(p.motivo)+'</span></span></label>'}).join(''):'<div class="sub">Nenhuma pendência identificada.</div>')+vt('pend')+'</div>';
   return '<div class="page"><div class="head"><div class="t"><button type="button" class="btn ghost sm" data-act="go" data-v="revisao">← Voltar à revisão</button><h1 style="margin-top:12px">Assinatura e resumo ao paciente</h1><div class="sub">Depois de assinado, o prontuário não pode mais ser alterado. Correções viram um adendo.</div></div></div>'+
   '<div class="cols"><div class="stack"><div class="card stack"><h2>Antes de assinar</h2><div class="row"><span class="pill ok">✓</span>'+conf+' de '+vis.length+' itens confirmados por você'+(vis.length-conf?' ('+(vis.length-conf)+' removidos)':'')+'</div><div class="row"><span class="pill ok">✓</span>Cada item aponta para o trecho da conversa que o sustenta</div><div class="row"><span class="pill ok">✓</span>Seu certificado digital está ativo (simulado)</div></div><div class="card stack"><h2>Assinatura digital</h2>'+sig+'</div>'+pend+'</div>'+
-  '<div class="card stack"><h2>Resumo para o paciente</h2><div class="sub">Só pode ser enviado depois da assinatura. Você revê e edita o texto.</div><div class="phone"><div class="h">Instituto Edras</div><div class="bub">'+esc(msg)+'</div>'+(S.sent?'<div class="bub me">Obrigada, doutora! Vou fazer os exames.</div>':'')+'</div><label class="lbl" for="msg">Editar texto<textarea class="in" id="msg" rows="6" data-bind="msg">'+esc(msg)+'</textarea></label><button type="button" class="btn lg" data-act="send" '+(S.signed&&!S.sent?'':'disabled')+'>'+(S.sent?'Resumo enviado (simulado)':(S.signed?'Enviar pelo WhatsApp':'Assine para liberar o envio'))+'</button>'+vt('zap')+'</div></div></div>';
+  '<div class="card stack"><h2>Resumo para o paciente</h2><div class="sub">Só pode ser enviado depois da assinatura. Você revê e edita o texto. O envio é feito por você no WhatsApp: o sistema abre a conversa com o texto pronto e você aperta enviar.</div><div class="phone"><div class="h">Instituto Edras</div><div class="bub">'+esc(msg)+'</div></div><label class="lbl" for="msg">Editar texto<textarea class="in" id="msg" rows="6" data-bind="msg">'+esc(msg)+'</textarea></label><label class="lbl" for="zapnum">WhatsApp do paciente (com DDD). No teste, use o seu próprio número.<input class="in" id="zapnum" type="tel" inputmode="tel" placeholder="(32) 9XXXX-XXXX" data-bind="zapnum" value="'+esc(S.zap||'')+'"></label>'+(S.zapErr?'<div class="sub" style="color:var(--bad,#b3261e)">'+esc(S.zapErr)+'</div>':'')+'<div class="row wrap" style="gap:10px"><button type="button" class="btn lg" data-act="wa" '+(S.signed?'':'disabled')+'>'+(S.signed?'Abrir no WhatsApp':'Assine para liberar o envio')+'</button><button type="button" class="btn soft lg" data-act="copymsg" '+(S.signed?'':'disabled')+'>'+(S.copiedMsg?'Texto copiado':'Copiar texto')+'</button></div>'+(S.sent?'<div class="sub">O WhatsApp foi aberto com o texto pronto. O envio só acontece quando você aperta enviar lá.</div>':'')+vt('zap')+'</div></div></div>';
 }
 function inovacoes(){
   var conf=[['Paciente Exemplo C.','Amanhã 09:00','62%','Faltou a 2 das últimas 4 consultas'],['Paciente Exemplo G.','Amanhã 10:30','8%','Sempre compareceu'],['Paciente Exemplo E.','Amanhã 15:00','31%','Remarcou a última vez']];
@@ -543,7 +543,7 @@ async function assinar(){
   S.signing=true;render();
   var txt=itensVis().filter(ok).map(function(it){return it.campo+': '+itemSt(it.id).texto}).join('\n'),hash='';
   try{var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));hash=Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}catch(e){hash='d4e1f09a77b3c2185e6a90b1c47d03aa5f12e8c9b6d7403a1e5f8c2b9a60d713'}
-  setTimeout(function(){S.signing=false;S.signed={hash:hash.slice(0,32)+'…',quando:'3 de novembro de 2026, 15:58'};render()},1100);
+  setTimeout(function(){S.signing=false;S.signed={hash:hash.slice(0,32)+'…',quando:new Date().toLocaleString('pt-BR',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})};render()},1100);
 }
 document.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;
@@ -573,7 +573,8 @@ document.addEventListener('click',function(e){
     case 'edcancel':S.editing=null;render();break;
     case 'aval':S.aval[k]=v;render();break;
     case 'sign':if(podeAssinar()&&!S.signing)assinar();break;
-    case 'send':if(S.signed&&!S.sent){S.sent=true;render()}break;
+    case 'wa':if(S.signed){var dg=String(S.zap||'').replace(/\D/g,'').replace(/^0+/,'');if(dg.length===10||dg.length===11)dg='55'+dg;if(!/^55\d{10,11}$/.test(dg)){S.zapErr='Informe o número com DDD, por exemplo (32) 9XXXX-XXXX.';render();break}S.zapErr='';S.sent=true;var wu='https://wa.me/'+dg+'?text='+encodeURIComponent(getMsg());render();try{window.open(wu,'_blank','noopener')}catch(x){}}break;
+    case 'copymsg':if(S.signed){var tm=getMsg();var fin=function(){S.copiedMsg=true;render();setTimeout(function(){S.copiedMsg=false;render()},2000)};var fb=function(){var ta=$('#msg');if(ta){ta.focus();ta.select();try{document.execCommand('copy')}catch(x){}}fin()};try{navigator.clipboard.writeText(tm).then(fin,fb)}catch(x){fb()}}break;
     case 'agsel':S.agSel=+v;render();break;
     case 'agnew':S.formAg=true;S.agErr='';render();break;
     case 'agcancel':S.formAg=false;render();break;
@@ -595,6 +596,7 @@ document.addEventListener('change',function(e){
 document.addEventListener('input',function(e){
   var el=e.target,b=el.getAttribute&&el.getAttribute('data-bind');if(!b)return;
   if(b==='busca'){S.busca=el.value;render();var n=$('#busca');n.focus();n.setSelectionRange(el.value.length,el.value.length);return}
+  if(b==='zapnum'){S.zap=el.value;return}
   if(b==='msg'){S.msg=el.value;S.msgEdited=true;var bb=$('.phone .bub');if(bb)bb.textContent=el.value;return}
   if(b==='ed')return;
   if(b==='tx'){S.tx=el.value;var g=$('#go');if(g)g.disabled=!S.tx.trim()||gravando;return}
@@ -617,5 +619,4 @@ function copiar(){
 window.addEventListener('DOMContentLoaded',function(){var h=(location.hash||'').slice(1);if(VIEWS[h])S.view=h;render()});
 if(document.readyState!=='loading'){var h0=(location.hash||'').slice(1);if(VIEWS[h0])S.view=h0;render()}
 })();
-
 </script>
