@@ -466,7 +466,7 @@ function route(){var h=(location.hash||'').slice(1);if(h==='cifrar'){render();re
 window.addEventListener('hashchange',route);
 
 /* ---------- gravação real e IA */
-var KEYBLOB="brOER0Oo6jRuCviRDoD01A==.oRJD6HLLZT+5ynfg.gAkdvQ5H17Le8oQDGcbc2BXJbbXMblmcUlzMB4sbscH9cFxt6m7wT35hJKCnBQmZS0gyGh4k/Ds14vRUkugXWigenQw55kNYV7J5o3pmBrZvDrOIR/PrqSqA9nsLvbjqqny5ct3swiK6Dt2Zjq/zppb41dOlc9ovYfc=",MODEL="claude-sonnet-5-5",API=null,DG=null,recog=null,mr=null,chunks=[],gravando=false,lastSp=null;
+var KEYBLOB="Y2KtFg3biOHE0gAf5fjDDA==.xetuenl9fNJ9bezI.B+8xzP+erh+p9SExuUPW6NCkWCdF013DYHBfTWJYcN0lBZQ2bn/zNe3tNeQLeRI8IgJrSTO/xSxtTeNnALbDOayvUWCiGX2/yRZqk9w2a/HcrItBb3enn5+/KGs0k33tLYTq9c9oYsVbWRpgtV0ZatULq9bWmtx3wRyWwoko2yJApbKsze6eQonLbzzZ/BC3FLXsdfNwdyaZvd6ijWUnKfnhvv/E9Ggrkf1Tz5IcCqBQ",MODEL="claude-sonnet-5-5",API=null,DG=null,recog=null,mr=null,chunks=[],gravando=false,lastSp=null;
 var enc=new TextEncoder(),dec=new TextDecoder();
 function unb64(x){return Uint8Array.from(atob(x),function(c){return c.charCodeAt(0)})}
 async function kdf(p,salt){var k=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt'])}
