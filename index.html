@@ -237,7 +237,7 @@ var EXEMPLO=[
 var FALAS=[],ITENS=[],AVALIA=[];
 function norm(x){return String(x).toLowerCase().replace(/[“”"']/g,'').replace(/\s+/g,' ').trim()}
 function evidenciaOk(it){return !!(it.ev&&it.ev.length>0)}
-function parseFalas(t){return t.split(/\n+/).map(function(l){var m=l.match(/^\s*(m[ée]dic[ao]|dra\.?|dr\.?|paciente)\s*:\s*(.*)$/i);if(m)return [/paciente/i.test(m[1])?'p':'m',m[2].trim(),0];return l.trim()?['x',l.trim(),0]:null}).filter(Boolean)}
+function parseFalas(t){return t.split(/\n+/).map(function(l){var m=l.match(/^\s*(m[ée]dic[ao]|dra\.?|dr\.?|paciente|voz\s*\w+)\s*:\s*(.*)$/i);if(m){if(/^voz/i.test(m[1]))return ['x',m[2].trim(),0,m[1].trim()];return [/paciente/i.test(m[1])?'p':'m',m[2].trim(),0]}return l.trim()?['x',l.trim(),0]:null}).filter(Boolean)}
 function localizar(falas,cit){
   var ns=falas.map(function(f){return norm(f[1])}),joined=ns.join(' '),c=norm(cit||'');if(!c)return [];
   var idx=joined.indexOf(c);if(idx<0)return [];
@@ -385,19 +385,19 @@ function consulta(){
   var head='<div class="card row wrap" style="gap:18px"><div class="avt">PA</div><div style="flex:1;min-width:200px"><div style="font-size:21px;font-weight:800">Paciente Exemplo A.</div><div class="sub">Retorno · Telemedicina · 14:00 – 16:00</div></div></div>';
   var left='';
   if(c==='proc'){
-    left=head+'<div class="card stack"><h2>Preparando o rascunho</h2><div class="steps"><div class="d"><span>✓</span>Transcrição recebida</div><div class="'+(S.proc>1?'d':'')+'"><span>'+(S.proc>1?'✓':'…')+'</span>A IA está montando o rascunho</div><div><span>3</span>Validando se cada item tem trecho que o sustente</div></div><p class="sub">Pode levar até 40 segundos.</p></div>';
+    left=head+'<div class="card stack"><h2>Preparando o rascunho</h2><p style="font-weight:600">'+esc(S.stage||'Processando…')+'</p><p class="sub">Não feche esta página.</p></div>';
   } else if(c==='done'){
     left=head+'<div class="card stack"><div class="okb"><b>Rascunho pronto.</b> '+itensVis().length+' itens com evidência e '+rejeitados().length+' descartados.</div><div class="row wrap"><button type="button" class="btn lg" data-act="go" data-v="revisao">Revisar o rascunho</button><button type="button" class="btn ghost" data-act="resetcons">Nova consulta</button></div></div>';
   } else {
     left=head+'<div class="card stack"><h2>Gravação</h2><label class="chk" style="cursor:pointer"><input type="checkbox" id="consent" data-act="consent" '+(S.consent?'checked':'')+(rec?' disabled':'')+'> A pessoa atendida consentiu a gravação (consulta simulada)</label>'+
     '<div class="row wrap"><button type="button" class="btn lg'+(rec?' bad':'')+'" data-act="rec" '+(S.consent&&!rec?'':'disabled')+'>'+ic('cons',20)+'Iniciar gravação</button><button type="button" class="btn ghost lg" data-act="stop" '+(rec?'':'disabled')+'>Parar</button></div>'+
-    '<div class="row wrap"><span id="st" class="sub">'+(rec?'<span class="rdot on"></span> Gravando':(S.consent?'Pronto para gravar.':'Marque o consentimento para liberar a gravação.'))+'</span></div>'+
+    '<div class="row wrap"><span id="st" class="sub">'+(rec?'<span class="rdot on"></span> Gravando <b id="clk" class="num">00:00</b> <span id="lvl" title="Nível do microfone" style="display:inline-block;vertical-align:middle;width:140px;height:10px;border-radius:6px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:0;background:var(--acc2)"></i></span>':(S.consent?'Pronto para gravar.':'Marque o consentimento para liberar a gravação.'))+'</span></div>'+
     (S.err?'<div class="err" role="alert">'+esc(S.err)+'</div>':'')+
     (S.audioUrl?'<audio controls src="'+S.audioUrl+'" style="width:100%"></audio>':'')+
-    '<div class="sub">Inicie uma vez e converse normalmente. Não precisa indicar quem fala: a IA identifica médica e paciente pelo contexto da conversa. Funciona no Chrome do computador ou do Android.</div>'+vt('micro')+'</div>'+
+    '<div class="sub">Inicie uma vez e converse normalmente. A barra mostra se o microfone está captando. Ao parar, o áudio é transcrito e as vozes são separadas automaticamente. Depois, a IA decide qual voz é a médica.</div>'+vt('micro')+'</div>'+
     '<div class="card stack"><h2>Cadastro da paciente (fictício)</h2><div class="sub">Medicações: losartana. Último TSH: 2,1 mUI/L (set/2025). Último peso aferido: 74,2 kg (abr/2026). Simule um retorno dela. O painel "Para sua avaliação" compara a conversa só com esses dados.</div></div>';
   }
-  var right='<div class="card stack"><h2>Transcrição</h2><textarea class="in" id="tx" rows="16" data-bind="tx" placeholder="O texto da conversa aparece aqui durante a gravação, um trecho por linha. Você também pode digitar ou colar. Se já souber quem fala, use o formato Médica: ... e Paciente: ...">'+esc(S.tx)+'</textarea><div class="row wrap"><button type="button" class="btn lg" id="go" data-act="analisar" '+(S.tx.trim()&&!rec&&c!=='proc'?'':'disabled')+'>Gerar rascunho com a IA</button><button type="button" class="btn ghost" data-act="exemplo" '+(rec||c==='proc'?'disabled':'')+'>Usar conversa de exemplo</button></div>'+vt('transc')+'</div>';
+  var right='<div class="card stack"><h2>Transcrição</h2><textarea class="in" id="tx" rows="16" data-bind="tx" placeholder="A transcrição aparece aqui depois que você parar a gravação, com Voz A e Voz B. Você também pode digitar ou colar.">'+esc(S.tx)+'</textarea><div class="row wrap"><button type="button" class="btn lg" id="go" data-act="analisar" '+(S.tx.trim()&&!rec&&c!=='proc'?'':'disabled')+'>Gerar rascunho com a IA</button><button type="button" class="btn ghost" data-act="exemplo" '+(rec||c==='proc'?'disabled':'')+'>Usar conversa de exemplo</button></div>'+vt('transc')+'</div>';
   return '<div class="page"><div class="head"><div class="t"><div class="eyebrow">Consulta</div><h1>Atendimento</h1></div></div><div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="stack">'+left+'</div>'+right+'</div></div>';
 }
 function fala(i,hl){var f=FALAS[i];return '<div class="fala'+(hl?' hl':'')+'" id="f'+i+'"><span class="ts">'+(i+1)+'</span><div><b>'+(f[0]==='m'?'Dra.':(f[0]==='p'?'Paciente':'Texto'))+'</b>'+esc(f[1])+'</div></div>'}
@@ -454,7 +454,7 @@ var VIEWS={hoje:hoje,agenda:agenda,pacientes:pacientes,consulta:consulta,revisao
 
 /* ---------- render ---------- */
 function render(opts){
-  var root=$('#app');
+  var root=$('#app');if(location.hash==='#cifrar'){root.innerHTML=genView();return}
   root.innerHTML=(S.logged?shell((VIEWS[S.view]||hoje)()):login())+(S.toast?'<div class="toast" role="status">'+esc(S.toast)+'</div>':'');
   if(opts&&opts.scroll)window.scrollTo(0,0);
   var t=$('#trans');if(t)t.scrollTop=t.scrollHeight;
@@ -462,51 +462,63 @@ function render(opts){
 }
 function toast(m){S.toast=m;clearTimeout(tToast);tToast=setTimeout(function(){S.toast='';var e=$('.toast');if(e)e.remove()},2200);render()}
 function go(v){S.view=v;if(location.hash!=='#'+v){try{location.hash=v}catch(e){}}render({scroll:true})}
-function route(){var h=(location.hash||'').slice(1);if(VIEWS[h]&&h!==S.view){S.view=h;render({scroll:true})}}
+function route(){var h=(location.hash||'').slice(1);if(h==='cifrar'){render();return}if(VIEWS[h]&&h!==S.view){S.view=h;render({scroll:true})}}
 window.addEventListener('hashchange',route);
 
 /* ---------- gravação real e IA */
-var KEYBLOB="brOER0Oo6jRuCviRDoD01A==.oRJD6HLLZT+5ynfg.gAkdvQ5H17Le8oQDGcbc2BXJbbXMblmcUlzMB4sbscH9cFxt6m7wT35hJKCnBQmZS0gyGh4k/Ds14vRUkugXWigenQw55kNYV7J5o3pmBrZvDrOIR/PrqSqA9nsLvbjqqny5ct3swiK6Dt2Zjq/zppb41dOlc9ovYfc=",MODEL="claude-sonnet-5-5",API=null,recog=null,mr=null,chunks=[],gravando=false,lastSp=null;
+var KEYBLOB="brOER0Oo6jRuCviRDoD01A==.oRJD6HLLZT+5ynfg.gAkdvQ5H17Le8oQDGcbc2BXJbbXMblmcUlzMB4sbscH9cFxt6m7wT35hJKCnBQmZS0gyGh4k/Ds14vRUkugXWigenQw55kNYV7J5o3pmBrZvDrOIR/PrqSqA9nsLvbjqqny5ct3swiK6Dt2Zjq/zppb41dOlc9ovYfc=",MODEL="claude-sonnet-5-5",API=null,DG=null,recog=null,mr=null,chunks=[],gravando=false,lastSp=null;
 var enc=new TextEncoder(),dec=new TextDecoder();
 function unb64(x){return Uint8Array.from(atob(x),function(c){return c.charCodeAt(0)})}
 async function kdf(p,salt){var k=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt'])}
 async function decifrar(blob,p){var a=blob.split('.'),k=await kdf(p,unb64(a[0]));var d=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(a[1])},k,unb64(a[2]));return dec.decode(d)}
 async function entrar(){
   var pw=$('#pw').value,nm=$('#nm').value.trim();
-  try{API=await decifrar(KEYBLOB,pw);S.err='';S.login=2;if(nm){S.tester=nm;lsSet('samia_tester',nm)}}catch(e){S.err='Senha de teste incorreta.'}
+  try{var kk=await decifrar(KEYBLOB,pw),ko=null;try{ko=JSON.parse(kk)}catch(e){}API=ko&&ko.a?ko.a:kk;DG=ko&&ko.d?ko.d:null;S.err='';S.login=2;if(nm){S.tester=nm;lsSet('samia_tester',nm)}}catch(e){S.err='Senha de teste incorreta.'}
   render();
 }
-function setSt(h){var e=$('#st');if(e)e.innerHTML=h}
+async function cifrar(txt,p){var salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k0=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']),k=await crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},k0,{name:'AES-GCM',length:256},false,['encrypt']);var c=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},k,enc.encode(txt));var b=function(a){var x='';new Uint8Array(a).forEach(function(y){x+=String.fromCharCode(y)});return btoa(x)};return b(salt)+'.'+b(iv)+'.'+b(c)}
+function genView(){return '<div class="page" style="max-width:640px;margin:40px auto;padding:0 16px"><h1>Gerar código de acesso</h1><p class="sub">Nada sai do seu navegador. Copie o resultado e envie ao Claude.</p><div class="card stack"><label class="lbl" for="gk1">Chave da Anthropic<input class="in" id="gk1" type="password" autocomplete="off"></label><label class="lbl" for="gk2">Chave da Deepgram<input class="in" id="gk2" type="password" autocomplete="off"></label><label class="lbl" for="gp">Senha de teste<input class="in" id="gp" autocomplete="off"></label><button type="button" class="btn" data-act="gerar">Gerar código</button><textarea class="in" id="go2" rows="4" readonly></textarea></div></div>'}
+var t0=0,tick=null,actx=null,peak=0,mstream=null;
 async function startRec(){
   if(!S.consent||gravando)return;
-  var SRc=window.SpeechRecognition||window.webkitSpeechRecognition;S.err='';S.audioUrl=null;
+  S.err='';S.audioUrl=null;peak=0;
+  if(!DG){S.err='A transcrição por voz não está configurada. Digite ou cole o texto ao lado.';render();return}
   try{
-    var stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    chunks=[];mr=new MediaRecorder(stream);mr.ondataavailable=function(e){chunks.push(e.data)};
-    mr.onstop=function(){stream.getTracks().forEach(function(t){t.stop()});S.audioUrl=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType}));render()};
-    mr.start();
+    mstream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    var mt=['audio/webm;codecs=opus','audio/webm','audio/mp4'].filter(function(t){return window.MediaRecorder&&MediaRecorder.isTypeSupported(t)})[0]||'';
+    chunks=[];mr=new MediaRecorder(mstream,mt?{mimeType:mt,audioBitsPerSecond:64000}:undefined);
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    mr.onstop=onRecStop;mr.start(1000);
+    actx=new (window.AudioContext||window.webkitAudioContext)();var an=actx.createAnalyser();an.fftSize=1024;actx.createMediaStreamSource(mstream).connect(an);var buf=new Uint8Array(an.fftSize);
+    t0=Date.now();clearInterval(tick);
+    tick=setInterval(function(){an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128)/128;if(v>m)m=v}peak=Math.max(peak,m);
+      var l=$('#lvl i');if(l)l.style.width=Math.min(100,Math.round(m*220))+'%';var c=$('#clk');if(c)c.textContent=mmss(Math.floor((Date.now()-t0)/1000))},120);
   }catch(e){S.err='Microfone bloqueado. Permita o acesso no cadeado ao lado do endereço e tente de novo.';render();return}
-  gravando=true;S.cons='rec';lastSp=null;render();
-  if(!SRc){setSt('Este navegador não transcreve voz. Use o Chrome, ou digite o texto ao lado.');return}
-  recog=new SRc();recog.lang='pt-BR';recog.continuous=true;recog.interimResults=true;
-  recog.onresult=function(ev){
-    for(var i=ev.resultIndex;i<ev.results.length;i++){
-      var r=ev.results[i];
-      if(r.isFinal){var t=r[0].transcript.trim();if(!t)continue;var v=S.tx;
-        v+=(v&&!v.endsWith('\n')?'\n':'')+t;S.tx=v;var ta=$('#tx');if(ta){ta.value=v;ta.scrollTop=ta.scrollHeight}setSt('<span class="rdot on"></span> Gravando')}
-      else{setSt('<span class="rdot on"></span> Ouvindo: '+esc(r[0].transcript.slice(-60)))}
-    }};
-  recog.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')setSt('Erro de voz: '+esc(e.error))};
-  recog.onend=function(){if(gravando){try{recog.start()}catch(e){}}};
-  recog.start();
+  gravando=true;S.cons='rec';render();
 }
-function stopRec(){gravando=false;try{recog&&recog.stop()}catch(e){}S.cons='pre';if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){render()}}else render()}
-var PROMPT='Você é o redator de prontuário de uma clínica de endocrinologia no Brasil. Receberá a transcrição de uma consulta, em trechos numerados, e o cadastro da paciente. A transcrição vem SEM identificação de quem fala. Atribua cada trecho a "M" (médica) ou "P" (paciente) pelo contexto (quem pergunta e conduz é a médica; quem relata sintomas e história é a paciente); em dúvida use "?". Um trecho pode misturar falas; atribua à voz predominante. Gere um RASCUNHO que a médica vai conferir. Regras: (1) Registre só o que foi dito. Nunca invente nem sugira diagnóstico, exame ou tratamento. Hipóteses, condutas e orientações só entram se a MÉDICA as disse, com as palavras dela. (2) Hipótese, condutas, orientações e retorno só valem se o trecho foi atribuído a M; se for P ou ?, não inclua. (3) Todo item precisa de "citacao": trecho copiado LITERALMENTE da transcrição (até 25 palavras, sem alterar nada, sem incluir o número do trecho nem rótulos Médica:/Paciente:). (4) Em "falantes" devolva uma entrada para CADA trecho numerado. (5) Responda APENAS um JSON válido: {"falantes":{"1":"M","2":"P"},"itens":[{"campo":"Queixa principal|Sintomas associados|Medicações em uso|Antecedentes|Hábitos|Hipótese dita pela médica|Condutas ditas pela médica|Orientações ditas pela médica|Retorno","texto":"...","citacao":"..."}],"anamnese":{"queixa":"","hda":"","antecedentes":"","medicacoes":"","habitos":""},"avaliacao":[{"fato":"...","nota":"..."}],"pendencias":[{"titulo":"...","motivo":"..."}],"resumo_paciente":"mensagem curta de WhatsApp em português com exames pedidos, orientações e retorno ditos pela médica"}. Em anamnese e pendencias use só o que está na conversa; campo sem informação fica vazio. Pendências são ações práticas derivadas do que foi dito (ex.: agendar retorno, cobrar exame). "avaliacao" lista apenas FATOS que comparam a conversa com o CADASTRO (ex.: medicação citada que não consta no cadastro; exame do cadastro com mais de 12 meses; peso do cadastro diferente do relato). Nunca recomende conduta. Se a conversa não for sobre essa paciente, devolva avaliacao vazia. CADASTRO: Paciente Exemplo A., 41 anos. Medicações cadastradas: losartana. Último TSH: 2,1 mUI/L em set/2025. Último peso aferido: 74,2 kg em abr/2026.';
+function stopRec(){gravando=false;clearInterval(tick);try{actx&&actx.close()}catch(e){}if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){S.cons='pre';render()}}else{S.cons='pre';render()}}
+async function onRecStop(){
+  try{mstream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  var blob=new Blob(chunks,{type:(mr&&mr.mimeType)||'audio/webm'});S.audioUrl=URL.createObjectURL(blob);
+  if(blob.size<4000){S.cons='pre';S.err='A gravação ficou curta demais. Grave de novo.';render();return}
+  if(peak<0.03){S.cons='pre';S.err='O microfone quase não captou som. Confira se o microfone certo está selecionado no navegador e fale mais perto.';render();return}
+  S.cons='proc';S.stage='Transcrevendo o áudio e separando as vozes. Em consultas longas isso leva alguns minutos.';render();
+  try{
+    var r=await fetch('https://api.deepgram.com/v1/listen?model=nova-2&language=pt-BR&diarize=true&utterances=true&punctuate=true&smart_format=true',{method:'POST',headers:{'Authorization':'Token '+DG,'Content-Type':blob.type||'audio/webm'},body:blob});
+    var j=await r.json();if(!r.ok)throw new Error(j.err_msg||j.error||('Erro '+r.status));
+    var u=(j.results&&j.results.utterances)||[],lines=[];
+    if(u.length)lines=u.map(function(x){return 'Voz '+String.fromCharCode(65+(x.speaker||0))+': '+x.transcript});
+    else{var al=j.results&&j.results.channels&&j.results.channels[0].alternatives[0];if(al&&al.transcript)lines=[al.transcript]}
+    if(!lines.length)throw new Error('Nenhuma fala reconhecida no áudio.');
+    S.tx=(S.tx?S.tx+'\n':'')+lines.join('\n');S.cons='pre';S.err='';render();
+  }catch(e){S.cons='pre';S.err='Falha na transcrição: '+e.message;render()}
+}
+var PROMPT='Você é o redator de prontuário de uma clínica de endocrinologia no Brasil. Receberá a transcrição de uma consulta, em trechos numerados, e o cadastro da paciente. A transcrição pode vir sem identificação de quem fala ou com vozes detectadas automaticamente (Voz A, Voz B, entre colchetes antes do trecho). A mesma voz é sempre a mesma pessoa: decida quem é a médica e aplique a todos os trechos dessa voz. Atribua cada trecho a "M" (médica) ou "P" (paciente) pelo contexto (quem pergunta e conduz é a médica; quem relata sintomas e história é a paciente); em dúvida use "?". Um trecho pode misturar falas; atribua à voz predominante. Gere um RASCUNHO que a médica vai conferir. Regras: (1) Registre só o que foi dito. Nunca invente nem sugira diagnóstico, exame ou tratamento. Hipóteses, condutas e orientações só entram se a MÉDICA as disse, com as palavras dela. (2) Hipótese, condutas, orientações e retorno só valem se o trecho foi atribuído a M; se for P ou ?, não inclua. (3) Todo item precisa de "citacao": trecho copiado LITERALMENTE da transcrição (até 25 palavras, sem alterar nada, sem incluir o número do trecho nem rótulos Médica:/Paciente:). (4) Em "falantes" devolva uma entrada para CADA trecho numerado. (5) Responda APENAS um JSON válido: {"falantes":{"1":"M","2":"P"},"itens":[{"campo":"Queixa principal|Sintomas associados|Medicações em uso|Antecedentes|Hábitos|Hipótese dita pela médica|Condutas ditas pela médica|Orientações ditas pela médica|Retorno","texto":"...","citacao":"..."}],"anamnese":{"queixa":"","hda":"","antecedentes":"","medicacoes":"","habitos":""},"avaliacao":[{"fato":"...","nota":"..."}],"pendencias":[{"titulo":"...","motivo":"..."}],"resumo_paciente":"mensagem curta de WhatsApp em português com exames pedidos, orientações e retorno ditos pela médica"}. Em anamnese e pendencias use só o que está na conversa; campo sem informação fica vazio. Pendências são ações práticas derivadas do que foi dito (ex.: agendar retorno, cobrar exame). "avaliacao" lista apenas FATOS que comparam a conversa com o CADASTRO (ex.: medicação citada que não consta no cadastro; exame do cadastro com mais de 12 meses; peso do cadastro diferente do relato). Nunca recomende conduta. Se a conversa não for sobre essa paciente, devolva avaliacao vazia. CADASTRO: Paciente Exemplo A., 41 anos. Medicações cadastradas: losartana. Último TSH: 2,1 mUI/L em set/2025. Último peso aferido: 74,2 kg em abr/2026.';
 async function analisar(){
   var t=S.tx.trim();if(!t||!API)return;
-  S.err='';S.cons='proc';S.proc=1;render();
+  S.err='';S.cons='proc';S.stage='A IA está identificando quem fala, montando o rascunho e validando cada trecho. Pode levar até 1 minuto.';render();
   try{
-    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:MODEL,max_tokens:6000,system:PROMPT,messages:[{role:'user',content:'TRANSCRIÇÃO:\n'+parseFalas(t).map(function(f,i){return '['+(i+1)+'] '+f[1]}).join('\n')}]})});
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:MODEL,max_tokens:6000,system:PROMPT,messages:[{role:'user',content:'TRANSCRIÇÃO:\n'+parseFalas(t).map(function(f,i){return '['+(i+1)+']'+(f[3]?' ['+f[3]+']':'')+' '+f[1]}).join('\n')}]})});
     var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||('Erro '+r.status));
     var txt=j.content.map(function(c){return c.text||''}).join(''),m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('A IA não devolveu um resultado legível. Tente de novo.');
     var d=JSON.parse(m[0]);S.proc=2;
@@ -548,6 +560,7 @@ document.addEventListener('click',function(e){
     case 'stop':stopRec();break;
     case 'spk':S.spk=v;[].forEach.call(document.querySelectorAll('[data-act=spk]'),function(b){b.className=b.getAttribute('data-v')===v?'s':''});break;
     case 'analisar':analisar();break;
+    case 'gerar':(async function(){var o={a:$('#gk1').value.trim()};var d=$('#gk2').value.trim();if(d)o.d=d;var p=$('#gp').value;if(!o.a||!p)return;$('#go2').value=await cifrar(JSON.stringify(o),p);$('#gk1').value='';$('#gk2').value=''})();break;
     case 'exemplo':S.tx=EXEMPLO.map(function(f){return (f[0]==='m'?'Médica':'Paciente')+': '+f[1]}).join('\n');render();break;
     case 'anamnese':S.pac='a';S.pacTab='anam';go('pacientes');break;
     case 'loadfull':go('consulta');break;
