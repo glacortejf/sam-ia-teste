@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAM.IA Teste de gravação</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F5F4;--s:#fff;--l:#E3E8E6;--ink:#0F1F1E;--m:#56676A;--a:#0A7468;--soft:#E3F2EF;--w:#FFF4DB;--wt:#8A5A00;--bad:#A8261E;--badbg:#FCE8E6;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 80px}
+h1{font-size:26px;margin:4px 0 2px;letter-spacing:-.01em}h2{font-size:16px;margin:0}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}.top b{font-size:20px;font-weight:800;letter-spacing:.04em}
+.note{background:var(--w);color:var(--wt);border-radius:12px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+.card{background:var(--s);border:1px solid var(--l);border-radius:16px;padding:20px;margin-bottom:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;height:44px;padding:0 20px;font-weight:700;background:var(--a);color:#fff}
+button.g{background:var(--s);color:var(--ink);border:1px solid var(--l)}button.on{background:#E5483D}button[disabled]{background:var(--l);color:var(--m);cursor:not-allowed}
+input,textarea{font:inherit;width:100%;border:1px solid var(--l);border-radius:12px;padding:11px 14px;background:var(--s);color:var(--ink)}
+textarea{min-height:200px;line-height:1.6;resize:vertical}
+.sp{margin-left:auto}.m{color:var(--m)}.err{background:var(--badbg);color:var(--bad);padding:10px 14px;border-radius:12px;font-weight:600}
+.pill{padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--a);font-weight:700;font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--l);border-radius:12px;overflow:hidden}.seg button{border-radius:0;height:40px;background:var(--s);color:var(--m)}.seg button.s{background:var(--soft);color:var(--a)}
+.it{border:1px solid var(--l);border-radius:12px;padding:12px 14px;margin-top:10px}.it .k{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--m)}
+.q{background:var(--bg);border-radius:8px;padding:6px 10px;margin-top:6px;font-size:13px;color:var(--m)}
+.rej{border:1px dashed var(--bad);background:var(--badbg);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px}
+.zap{background:#D9FDD3;border-radius:14px;padding:14px;white-space:pre-wrap;margin-top:8px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#E5483D;animation:p 1.2s infinite}@keyframes p{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+</style></head><body><main>
+<div class="top"><b>SAM.IA</b><span class="pill">Teste de gravação</span></div>
+<h1>Grave uma consulta simulada e veja o que a IA gera</h1>
+<div class="note"><b>Só consultas simuladas.</b> Não use paciente real. No Chrome, o texto da fala é gerado pelo serviço de voz do Google e a análise é feita pelo Claude. Isso é só para teste. O sistema real terá consentimento e armazenamento próprio.</div>
+
+<section class="card" id="sKey"><h2>1. Liberar a análise da IA</h2>
+ <div id="keyBox" class="row" style="margin-top:12px"></div><div id="keyErr"></div></section>
+
+<section class="card"><h2>2. Gravar a conversa</h2>
+ <div class="row" style="margin:12px 0"><label class="row"><input type="checkbox" id="cons" style="width:auto"> A pessoa que está sendo atendida consentiu a gravação (simulação)</label></div>
+ <div class="row"><button id="rec" disabled>Iniciar gravação</button><button id="stop" class="g" disabled>Parar</button>
+ <div class="seg" role="group" aria-label="Quem está falando"><button id="spM" class="s">Médica falando</button><button id="spP">Paciente falando</button></div>
+ <span id="st" class="m sp">Pronto.</span></div>
+ <p class="m" style="margin:10px 0 0">Alterne o botão de quem fala ao trocar de pessoa. O texto aparece abaixo e você pode corrigir antes de analisar. Funciona melhor no Chrome do computador ou do Android.</p>
+ <audio id="aud" controls style="width:100%;margin-top:12px" hidden></audio>
+ <h2 style="margin-top:18px">Transcrição</h2><textarea id="tx" placeholder="A transcrição aparece aqui. Você também pode colar ou digitar uma conversa no formato:&#10;Médica: ...&#10;Paciente: ..."></textarea>
+ <div class="row" style="margin-top:12px"><button id="go" disabled>Analisar com a IA</button><span id="gs" class="m"></span></div></section>
+
+<section class="card" id="res" hidden></section>
+
+<details class="card"><summary><b>Para o Guilherme: criar o código de acesso da chave</b></summary>
+ <p class="m">Preencha a chave da Anthropic e uma senha de teste. Nada sai deste navegador. Copie o resultado e me envie.</p>
+ <label>Chave da API<input id="kk" type="password" autocomplete="off"></label><br><br>
+ <label>Senha de teste (será passada às médicas)<input id="kp" autocomplete="off"></label><br><br>
+ <button id="kb">Gerar código</button><textarea id="ko" readonly style="min-height:70px;margin-top:12px"></textarea></details>
+</main>
+<script>
+var KEYBLOB=""; /* preenchido depois com a chave cifrada */
+var MODEL="claude-sonnet-5-5";
+var $=function(s){return document.getElementById(s)};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var API=null,rec=null,mr=null,chunks=[],on=false,speaker='Médica',last='';
+var enc=new TextEncoder(),dec=new TextDecoder();
+function b64(a){var s='';new Uint8Array(a).forEach(function(x){s+=String.fromCharCode(x)});return btoa(s)}
+function unb64(s){return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)})}
+async function kdf(p,salt){var k=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function cifrar(key,p){var salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await kdf(p,salt);var c=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},k,enc.encode(key));return b64(salt)+'.'+b64(iv)+'.'+b64(c)}
+async function decifrar(blob,p){var a=blob.split('.'),k=await kdf(p,unb64(a[0]));var d=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(a[1])},k,unb64(a[2]));return dec.decode(d)}
+function keyUI(){
+  var b=$('keyBox');
+  if(API){b.innerHTML='<span class="pill">IA liberada</span>';return}
+  b.innerHTML=KEYBLOB?'<input id="pw" type="password" placeholder="Senha de teste" style="max-width:260px"><button id="un">Liberar</button>':'<input id="pk" type="password" placeholder="Cole sua chave da API (fica só neste navegador)" style="max-width:420px"><button id="un">Liberar</button>';
+  $('un').onclick=async function(){
+    try{
+      if(KEYBLOB){API=await decifrar(KEYBLOB,$('pw').value)}else{API=$('pk').value.trim();if(!API)throw 0}
+      $('keyErr').innerHTML='';keyUI();upd();
+    }catch(e){$('keyErr').innerHTML='<div class="err" style="margin-top:10px">Senha incorreta ou chave vazia.</div>'}
+  };
+}
+function upd(){$('rec').disabled=!$('cons').checked||on;$('go').disabled=!API||!$('tx').value.trim()}
+$('cons').onchange=upd;$('tx').oninput=upd;
+$('spM').onclick=function(){setSp('Médica')};$('spP').onclick=function(){setSp('Paciente')};
+function setSp(s){speaker=s;$('spM').className=s==='Médica'?'s':'';$('spP').className=s==='Paciente'?'s':''}
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+$('rec').onclick=async function(){
+  if(!SR){$('st').textContent='Este navegador não transcreve voz. Use o Chrome, ou cole o texto abaixo.';return}
+  try{
+    var stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[];mr=new MediaRecorder(stream);mr.ondataavailable=function(e){chunks.push(e.data)};
+    mr.onstop=function(){stream.getTracks().forEach(function(t){t.stop()});var a=$('aud');a.src=URL.createObjectURL(new Blob(chunks,{type:mr.mimeType}));a.hidden=false};
+    mr.start();
+  }catch(e){$('st').textContent='Microfone bloqueado. Permita o acesso no cadeado do navegador.';return}
+  on=true;$('rec').className='on';$('rec').disabled=true;$('stop').disabled=false;$('st').innerHTML='<span class="dot"></span> Gravando';
+  rec=new SR();rec.lang='pt-BR';rec.continuous=true;rec.interimResults=true;var lastSp=null;
+  rec.onresult=function(ev){
+    for(var i=ev.resultIndex;i<ev.results.length;i++){
+      var r=ev.results[i];
+      if(r.isFinal){var t=r[0].transcript.trim();if(!t)continue;
+        var v=$('tx').value;
+        if(lastSp!==speaker||!v){v+=(v&&!v.endsWith('\n')?'\n':'')+speaker+': '+t}else{v+=' '+t}
+        lastSp=speaker;$('tx').value=v;$('st').innerHTML='<span class="dot"></span> Gravando';upd()}
+      else{$('st').innerHTML='<span class="dot"></span> Ouvindo: '+esc(r[0].transcript.slice(-60))}
+    }};
+  rec.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')$('st').textContent='Erro de voz: '+e.error};
+  rec.onend=function(){if(on){try{rec.start()}catch(e){}}};
+  rec.start();
+};
+$('stop').onclick=function(){on=false;try{rec.stop()}catch(e){}try{mr.stop()}catch(e){}$('rec').className='';$('stop').disabled=true;$('st').textContent='Gravação encerrada. Revise o texto e clique em Analisar.';upd()};
+var PROMPT='Você é o redator de prontuário de uma clínica de endocrinologia no Brasil. Receberá a transcrição de uma consulta. Gere um RASCUNHO que a médica vai conferir. Regras: (1) Registre só o que foi dito. Nunca invente, nunca sugira diagnóstico, exame ou tratamento. Hipóteses, condutas e orientações só entram se a MÉDICA as disse, e com as palavras dela. (2) Todo item precisa de "citacao": trecho copiado LITERALMENTE da transcrição (até 25 palavras, sem alterar nada). (3) Responda APENAS um JSON válido neste formato: {"itens":[{"campo":"Queixa principal|Sintomas associados|Medicações em uso|Antecedentes|Hábitos|Hipótese dita pela médica|Condutas ditas pela médica|Orientações ditas pela médica|Retorno","texto":"...","citacao":"..."}],"anamnese":{"queixa":"","hda":"","antecedentes":"","medicacoes":"","habitos":""},"pendencias":[{"titulo":"...","motivo":"..."}],"resumo_paciente":"mensagem curta de WhatsApp em português, só com exames pedidos, orientações e retorno ditos pela médica"}. Em anamnese e pendencias, só use informação presente na conversa; campo sem informação fica vazio. Pendências são ações práticas (agendar retorno, cobrar exame) derivadas do que foi dito.';
+function norm(s){return s.toLowerCase().replace(/\s+/g,' ').replace(/[“”"']/g,'').trim()}
+$('go').onclick=async function(){
+  var t=$('tx').value.trim();$('go').disabled=true;$('gs').textContent='Analisando… pode levar até 40 segundos.';$('res').hidden=true;
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:MODEL,max_tokens:4000,system:PROMPT,messages:[{role:'user',content:'TRANSCRIÇÃO:\n'+t}]})});
+    var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||r.status);
+    var txt=j.content.map(function(c){return c.text||''}).join('');var m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('A IA não devolveu um resultado legível.');
+    show(JSON.parse(m[0]),t);$('gs').textContent='';
+  }catch(e){$('gs').innerHTML='<span class="err">Falhou: '+esc(e.message)+'</span>'}
+  upd();
+};
+function show(d,t){
+  var nt=norm(t),ok=[],bad=[];
+  (d.itens||[]).forEach(function(it){(it.citacao&&nt.indexOf(norm(it.citacao))>=0?ok:bad).push(it)});
+  var a=d.anamnese||{},L={queixa:'Queixa',hda:'História da doença atual',antecedentes:'Antecedentes',medicacoes:'Medicações',habitos:'Hábitos'};
+  var h='<h2>Resultado</h2><p class="m">'+ok.length+' itens com evidência literal confirmada; '+bad.length+' descartados por falta de evidência.</p><div class="sec"><b>Rascunho do prontuário</b></div>'+
+  ok.map(function(it){return '<div class="it"><div class="k">'+esc(it.campo)+'</div><div><b>'+esc(it.texto)+'</b></div><div class="q">Trecho da conversa: “'+esc(it.citacao)+'”</div></div>'}).join('')+
+  bad.map(function(it){return '<div class="rej"><b>Descartado pelo sistema:</b> “'+esc(it.campo)+': '+esc(it.texto)+'”. A citação “'+esc(it.citacao||'sem citação')+'” não existe na transcrição.</div>'}).join('')+
+  '<h2 style="margin-top:22px">Anamnese</h2>'+Object.keys(L).map(function(k){return '<div class="it"><div class="k">'+L[k]+'</div>'+(a[k]?esc(a[k]):'<span class="m">Sem informação na conversa</span>')+'</div>'}).join('')+
+  '<h2 style="margin-top:22px">Pendências e oportunidades</h2>'+((d.pendencias||[]).map(function(p){return '<div class="it"><b>'+esc(p.titulo)+'</b><div class="m">'+esc(p.motivo||'')+'</div></div>'}).join('')||'<p class="m">Nenhuma.</p>')+
+  '<h2 style="margin-top:22px">Resumo para o paciente (WhatsApp)</h2><div class="zap">'+esc(d.resumo_paciente||'')+'</div>';
+  $('res').innerHTML=h;$('res').hidden=false;$('res').scrollIntoView({behavior:'smooth'});
+}
+$('kb').onclick=async function(){var k=$('kk').value.trim(),p=$('kp').value;if(!k||!p)return;$('ko').value=await cifrar(k,p);$('kk').value=''};
+keyUI();upd();
+</script></body></html>
