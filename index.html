@@ -352,7 +352,7 @@ var DOCS=['Dra. Exemplo','Dr. Exemplo'];
 var MODS={micro:'Gravação com o microfone',transc:'Transcrição da voz',rascunho:'Rascunho da consulta com evidência',descarte:'Descarte de item sem evidência',aval:'Painel "Para sua avaliação"',pend:'Pendências e oportunidades da consulta',zap:'Resumo ao paciente pelo WhatsApp',agenda:'Agenda com consultas longas',anam:'Anamnese',brief:'Briefing da manhã',tl:'Timeline de saúde',foto:'Fotos do paciente: antes e depois',evol:'Evolução do paciente (gráficos)',hist:'Histórico: linha do tempo, consultas e exames',bio:'Importação de bioimpedância',mem:'Memória da relação',conf:'Confirmação preditiva',inat:'Recuperação de inativos',cont:'Conteúdo a partir da prática',intel:'Inteligência de atendimento'};
 
 /* ---------- estado ---------- */
-var S={logged:false,login:1,view:'hoje',cons:'pre',consent:false,n:0,tick:0,since:0,speed:1,proc:0,paused:false,
+var S={logged:false,login:1,view:'hoje',cons:'pre',consent:false,model:'',recov:null,cost:null,n:0,tick:0,since:0,speed:1,proc:0,paused:false,
   itens:{},sel:null,editing:null,aval:{},signed:null,signing:false,sent:false,msg:null,msgEdited:false,
   pend:{retorno:false,exames:true,check:true},futuro:[],agenda:AG0.slice(),agSel:3,formAg:false,agErr:'',agNovo:null,
   tx:'',spk:'Médica',err:'',audioUrl:null,pendAI:[],msgAI:'',pac:'a',pacSer:null,pacFilt:'all',pacOpen:null,bio:null,bioSel:null,bioOk:false,fotoOk:false,fp:null,fpHint:false,fAng:null,fA:null,fB:null,fdel:null,pacTab:'evol',busca:'',anam:{queixa:'Ganho de peso e cansaço',hda:'Retorno de acompanhamento iniciado em set/2025.',antec:'Hipertensão arterial.',medic:'Losartana.',habitos:'Sedentária. Sono irregular.'},
@@ -856,14 +856,16 @@ function consulta(){
   } else if(c==='done'){
     left=head+'<div class="card stack"><div class="okb"><b>Rascunho pronto.</b> '+itensVis().length+' itens com evidência e '+rejeitados().length+' descartados.</div><div class="row wrap"><button type="button" class="btn lg" data-act="go" data-v="revisao">Revisar o rascunho</button><button type="button" class="btn ghost" data-act="resetcons">Nova consulta</button></div></div>';
   } else {
-    left=head+'<div class="card stack"><h2>Gravação</h2><label class="chk" style="cursor:pointer"><input type="checkbox" id="consent" data-act="consent" '+(S.consent?'checked':'')+(rec?' disabled':'')+'> A pessoa atendida consentiu a gravação (consulta simulada)</label>'+
+    left=head+recBanner()+'<div class="card stack"><h2>Gravação</h2><label class="chk" style="cursor:pointer"><input type="checkbox" id="consent" data-act="consent" '+(S.consent?'checked':'')+(rec?' disabled':'')+'> A pessoa atendida consentiu a gravação (consulta simulada)</label>'+
+    '<label class="lbl" for="mdl">Modelo da IA<select class="in" id="mdl" data-act="model"><option value=""'+(S.model?'':' selected')+'>Sonnet 5.5 (padrão)</option><option value="claude-haiku-5-5"'+(S.model?' selected':'')+'>Haiku 5.5 (econômico, para teste A/B)</option></select></label>'+
     '<div class="row wrap"><button type="button" class="btn lg'+(rec?' bad':'')+'" data-act="rec" '+(S.consent&&!rec?'':'disabled')+'>'+ic('cons',20)+'Iniciar gravação</button><button type="button" class="btn ghost lg" data-act="stop" '+(rec?'':'disabled')+'>Parar</button></div>'+
     '<div class="row wrap"><span id="st" class="sub">'+(rec?'<span class="rdot on"></span> Gravando <b id="clk" class="num">00:00</b> <span id="lvl" title="Nível do microfone" style="display:inline-block;vertical-align:middle;width:140px;height:10px;border-radius:6px;background:var(--line2);overflow:hidden"><i style="display:block;height:100%;width:0;background:var(--acc2)"></i></span>':(S.consent?'Pronto para gravar.':'Marque o consentimento para liberar a gravação.'))+'</span></div>'+
     (S.err?'<div class="err" role="alert">'+esc(S.err)+'</div>':'')+
     (S.audioUrl?'<audio controls src="'+S.audioUrl+'" style="width:100%"></audio>':'')+
     '<div class="sub">Inicie uma vez e converse normalmente. A barra mostra se o microfone está captando. Ao parar, o áudio é transcrito e as vozes são separadas automaticamente. Depois, a IA decide qual voz é a médica.</div>'+vt('micro')+'</div>'+
-    '<div class="card stack"><h2>Cadastro da paciente (fictício)</h2><div class="sub">Medicações: losartana. Último TSH: 2,1 mUI/L (set/2025). Último peso aferido: 74,2 kg (abr/2026). Simule um retorno dela. O painel "Para sua avaliação" compara a conversa só com esses dados.</div></div>';
+    custoCard()+'<div class="card stack"><h2>Cadastro da paciente (fictício)</h2><div class="sub">Medicações: losartana. Último TSH: 2,1 mUI/L (set/2025). Último peso aferido: 74,2 kg (abr/2026). Simule um retorno dela. O painel "Para sua avaliação" compara a conversa só com esses dados.</div></div>';
   }
+  if(c==='done')left+=custoCard();
   var right='<div class="card stack"><h2>Transcrição</h2><textarea class="in" id="tx" rows="16" data-bind="tx" placeholder="A transcrição aparece aqui depois que você parar a gravação, com Voz A e Voz B. Você também pode digitar ou colar.">'+esc(S.tx)+'</textarea><div class="row wrap"><button type="button" class="btn lg" id="go" data-act="analisar" '+(S.tx.trim()&&!rec&&c!=='proc'?'':'disabled')+'>Gerar rascunho com a IA</button><button type="button" class="btn ghost" data-act="exemplo" '+(rec||c==='proc'?'disabled':'')+'>Usar conversa de exemplo</button></div>'+vt('transc')+'</div>';
   return '<div class="page"><div class="head"><div class="t"><div class="eyebrow">Consulta</div><h1>Atendimento</h1></div></div><div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="stack">'+left+'</div>'+right+'</div></div>';
 }
@@ -946,51 +948,96 @@ async function entrar(){
 async function cifrar(txt,p){var salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k0=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']),k=await crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},k0,{name:'AES-GCM',length:256},false,['encrypt']);var c=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},k,enc.encode(txt));var b=function(a){var x='';new Uint8Array(a).forEach(function(y){x+=String.fromCharCode(y)});return btoa(x)};return b(salt)+'.'+b(iv)+'.'+b(c)}
 function genView(){return '<div class="page" style="max-width:640px;margin:40px auto;padding:0 16px"><h1>Gerar código de acesso</h1><p class="sub">Nada sai do seu navegador. Copie o resultado e envie ao Claude.</p><div class="card stack"><label class="lbl" for="gk1">Chave da Anthropic<input class="in" id="gk1" type="password" autocomplete="off"></label><label class="lbl" for="gk2">Chave da Deepgram<input class="in" id="gk2" type="password" autocomplete="off"></label><label class="lbl" for="gp">Senha de teste<input class="in" id="gp" autocomplete="off"></label><button type="button" class="btn" data-act="gerar">Gerar código</button><textarea class="in" id="go2" rows="4" readonly></textarea></div></div>'}
 var t0=0,tick=null,actx=null,peak=0,mstream=null;
+var sid=0,wl=null,_db=null;
+var RATE={dg:0.0043+0.0020,fx:5.5,mod:{'claude-sonnet-5-5':[3,15,'Sonnet 5.5'],'claude-haiku-5-5':[1,5,'Haiku 5.5']}};
+/* áudio salvo em blocos no navegador: sobrevive a fechar a aba ou cair a energia */
+function idb(){return _db?Promise.resolve(_db):new Promise(function(ok,no){try{var q=indexedDB.open('samia_rec',1);q.onupgradeneeded=function(){q.result.createObjectStore('ch',{autoIncrement:true});q.result.createObjectStore('meta',{keyPath:'sid'})};q.onsuccess=function(){_db=q.result;ok(_db)};q.onerror=function(){no(q.error)}}catch(e){no(e)}})}
+function idbReq(st,mode,fn){return idb().then(function(d){return new Promise(function(ok,no){var t=d.transaction(st,mode),r=fn(t.objectStore(st));t.oncomplete=function(){ok(r.result)};t.onerror=t.onabort=function(){no(t.error)}})})}
+function recPut(b){idbReq('ch','readwrite',function(s){return s.add({sid:sid,blob:b})}).catch(function(){})}
+function recMetaPut(m){return idbReq('meta','readwrite',function(s){return s.put(m)}).catch(function(){})}
+function recClear(){return idbReq('ch','readwrite',function(s){return s.clear()}).then(function(){return idbReq('meta','readwrite',function(s){return s.clear()})}).catch(function(){})}
+function recRead(){return Promise.all([idbReq('meta','readonly',function(s){return s.getAll()}),idbReq('ch','readonly',function(s){return s.getAll()})]).then(function(a){var m=a[0][0];return {meta:m,blobs:a[1].filter(function(x){return m&&x.sid===m.sid}).map(function(x){return x.blob})}})}
+function recCheck(){return recRead().then(function(d){if(d.meta&&d.blobs.length>1&&!gravando){var sz=d.blobs.reduce(function(a,b){return a+b.size},0);S.recov={when:new Date(d.meta.at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}),mb:(sz>=1048576?(sz/1048576).toFixed(1).replace('.',',')+' MB':Math.max(1,Math.round(sz/1024))+' KB')}}else S.recov=null;if(S.logged)render()}).catch(function(){})}
+function keepChunk(b){chunks.push(b);recPut(b)}
+async function getWake(){try{if(navigator.wakeLock)wl=await navigator.wakeLock.request('screen')}catch(e){}}
+function relWake(){try{wl&&wl.release()}catch(e){}wl=null}
+document.addEventListener('visibilitychange',function(){if(gravando&&document.visibilityState==='visible')getWake()});
+window.addEventListener('beforeunload',function(e){if(gravando){e.preventDefault();e.returnValue=''}});
+/* custo medido */
+function usdBrl(u){return 'R$ '+(u*RATE.fx).toFixed(2).replace('.',',')}
+function usdTxt(u){return 'US$ '+u.toFixed(3).replace('.',',')}
+function mn1(x){return (Math.round(x*10)/10).toString().replace('.',',')}
+function custoCard(){var c=S.cost;if(!c||(!c.dg&&!c.llm))return '';
+  var u=(c.dg?c.dg.usd:0)+(c.llm?c.llm.usd:0),l=lsGet('samia_custo_v1',[]),med=l.length?l.reduce(function(a,x){return a+x.usd},0)/l.length:0,r='';
+  if(c.dg)r+='<tr><td><b>Transcrição</b><div class="sub">'+(c.dg.rec?'Gravado '+mn1(c.dg.rec)+' min · ':'')+'faturado '+mn1(c.dg.billed)+' min'+'</div></td><td class="num">'+usdTxt(c.dg.usd)+'</td><td class="num">'+usdBrl(c.dg.usd)+'</td></tr>';
+  if(c.llm)r+='<tr><td><b>IA</b><div class="sub">'+esc(c.llm.nome)+' · '+c.llm.inTok+' tokens de entrada, '+c.llm.outTok+' de saída</div></td><td class="num">'+usdTxt(c.llm.usd)+'</td><td class="num">'+usdBrl(c.llm.usd)+'</td></tr>';
+  r+='<tr><td><b>Total</b></td><td class="num"><b>'+usdTxt(u)+'</b></td><td class="num"><b>'+usdBrl(u)+'</b></td></tr>';
+  return '<div class="card stack"><h2>Custo medido desta consulta</h2><div class="sub">Preços de tabela e câmbio de R$ 5,50. Confira na fatura real de cada provedor.</div><div style="overflow-x:auto"><table class="table"><tr><th>Item</th><th>US$</th><th>R$</th></tr>'+r+'</table></div>'+(l.length?'<div class="sub">Média de '+l.length+(l.length>1?' consultas registradas':' consulta registrada')+' neste navegador: <b>'+usdBrl(med)+'</b></div>':'')+'</div>'}
+function recBanner(){var r=S.recov;if(!r||gravando)return '';return '<div class="card stack" style="border-color:var(--warn)"><h2>Gravação não finalizada</h2><p>Há uma gravação de '+esc(r.when)+' (cerca de '+r.mb+') que ainda não foi transcrita. Pode ter sido interrompida por queda do navegador, da energia ou da internet.</p><div class="row wrap"><button type="button" class="btn" data-act="recrecover">Recuperar e transcrever</button><button type="button" class="btn ghost" data-act="recdiscard">Descartar</button></div><div class="sub">Por privacidade, o áudio guardado no navegador é apagado depois que a transcrição dá certo, ou ao descartar.</div></div>'}
+async function recRecover(){try{var d=await recRead();if(!d.blobs.length){S.recov=null;render();return}var blob=new Blob(d.blobs,{type:(d.meta&&d.meta.mime)||'audio/webm'});S.audioUrl=URL.createObjectURL(blob);S.cost=null;await transcrever(blob,0)}catch(e){S.err='Não consegui recuperar a gravação: '+e.message;render()}}
 async function startRec(){
   if(!S.consent||gravando)return;
   S.err='';S.audioUrl=null;peak=0;
+  if(S.recov){S.err='Há uma gravação não finalizada. Recupere ou descarte antes de iniciar outra.';render();return}
+  S.cost=null;
   if(!DG){S.err='A transcrição por voz não está configurada. Digite ou cole o texto ao lado.';render();return}
   try{
     mstream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     var mt=['audio/webm;codecs=opus','audio/webm','audio/mp4'].filter(function(t){return window.MediaRecorder&&MediaRecorder.isTypeSupported(t)})[0]||'';
-    chunks=[];mr=new MediaRecorder(mstream,mt?{mimeType:mt,audioBitsPerSecond:64000}:undefined);
-    mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data)};
+    chunks=[];sid=Date.now();await recClear();recMetaPut({sid:sid,at:new Date().toISOString(),mime:mt||'audio/webm'});
+    mr=new MediaRecorder(mstream,mt?{mimeType:mt,audioBitsPerSecond:32000}:undefined);
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)keepChunk(e.data)};
     mr.onstop=onRecStop;mr.start(1000);
     actx=new (window.AudioContext||window.webkitAudioContext)();var an=actx.createAnalyser();an.fftSize=1024;actx.createMediaStreamSource(mstream).connect(an);var buf=new Uint8Array(an.fftSize);
     t0=Date.now();clearInterval(tick);
     tick=setInterval(function(){an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128)/128;if(v>m)m=v}peak=Math.max(peak,m);
       var l=$('#lvl i');if(l)l.style.width=Math.min(100,Math.round(m*220))+'%';var c=$('#clk');if(c)c.textContent=mmss(Math.floor((Date.now()-t0)/1000))},120);
   }catch(e){S.err='Microfone bloqueado. Permita o acesso no cadeado ao lado do endereço e tente de novo.';render();return}
-  gravando=true;S.cons='rec';render();
+  gravando=true;S.cons='rec';getWake();render();
 }
 function stopRec(){gravando=false;clearInterval(tick);try{actx&&actx.close()}catch(e){}if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){S.cons='pre';render()}}else{S.cons='pre';render()}}
 async function onRecStop(){
   try{mstream.getTracks().forEach(function(t){t.stop()})}catch(e){}
+  relWake();
   var blob=new Blob(chunks,{type:(mr&&mr.mimeType)||'audio/webm'});S.audioUrl=URL.createObjectURL(blob);
-  if(blob.size<4000){S.cons='pre';S.err='A gravação ficou curta demais. Grave de novo.';render();return}
-  if(peak<0.03){S.cons='pre';S.err='O microfone quase não captou som. Confira se o microfone certo está selecionado no navegador e fale mais perto.';render();return}
-  S.cons='proc';S.stage='Transcrevendo o áudio e separando as vozes. Em consultas longas isso leva alguns minutos.';render();
+  var rec=(Date.now()-t0)/60000;
+  if(blob.size<2500){recClear();S.cons='pre';S.err='A gravação ficou curta demais. Grave de novo.';render();return}
+  if(peak<0.03){recClear();S.cons='pre';S.err='O microfone quase não captou som. Confira se o microfone certo está selecionado no navegador e fale mais perto.';render();return}
+  await transcrever(blob,rec)
+}
+function dgPost(url,blob){return fetch(url,{method:'POST',headers:{'Authorization':'Token '+DG,'Content-Type':blob.type||'audio/webm'},body:blob})}
+async function transcrever(blob,rec){
+  S.cons='proc';S.stage='Transcrevendo o áudio e separando as vozes. Consultas longas levam alguns minutos. Não feche esta página.';render();
   try{
-    var r=await fetch('https://api.deepgram.com/v1/listen?model=nova-2&language=pt-BR&diarize=true&utterances=true&punctuate=true&smart_format=true',{method:'POST',headers:{'Authorization':'Token '+DG,'Content-Type':blob.type||'audio/webm'},body:blob});
+    var base='https://api.deepgram.com/v1/listen?language=pt-BR&diarize=true&utterances=true&punctuate=true&smart_format=true';
+    var r=await dgPost(base+'&model=nova-3',blob);
+    if(r.status===400)r=await dgPost(base+'&model=nova-2',blob);
     var j=await r.json();if(!r.ok)throw new Error(j.err_msg||j.error||('Erro '+r.status));
     var u=(j.results&&j.results.utterances)||[],lines=[];
     if(u.length)lines=u.map(function(x){return 'Voz '+String.fromCharCode(65+(x.speaker||0))+': '+x.transcript});
     else{var al=j.results&&j.results.channels&&j.results.channels[0].alternatives[0];if(al&&al.transcript)lines=[al.transcript]}
     if(!lines.length)throw new Error('Nenhuma fala reconhecida no áudio.');
-    S.tx=(S.tx?S.tx+'\n':'')+lines.join('\n');S.cons='pre';S.err='';render();
-  }catch(e){S.cons='pre';S.err='Falha na transcrição: '+e.message;render()}
+    var dur=((j.metadata&&j.metadata.duration)||0)/60;
+    S.cost=S.cost||{};S.cost.dg={rec:rec||0,billed:dur,usd:dur*RATE.dg};
+    S.tx=(S.tx?S.tx+'\n':'')+lines.join('\n');S.cons='pre';S.err='';S.recov=null;recClear();render();
+  }catch(e){S.cons='pre';S.err='Falha na transcrição: '+e.message+'. O áudio continua guardado neste navegador: use "Recuperar e transcrever" para tentar de novo.';recCheck();render()}
 }
-var PROMPT='Você é o redator de prontuário de uma clínica de endocrinologia no Brasil. Receberá a transcrição de uma consulta, em trechos numerados, e o cadastro da paciente. A transcrição pode vir sem identificação de quem fala ou com vozes detectadas automaticamente (Voz A, Voz B, entre colchetes antes do trecho). A mesma voz é sempre a mesma pessoa: decida quem é a médica e aplique a todos os trechos dessa voz. Atribua cada trecho a "M" (médica) ou "P" (paciente) pelo contexto (quem pergunta e conduz é a médica; quem relata sintomas e história é a paciente); em dúvida use "?". Um trecho pode misturar falas; atribua à voz predominante. Gere um RASCUNHO que a médica vai conferir. Regras: (1) Registre só o que foi dito. Nunca invente nem sugira diagnóstico, exame ou tratamento. Hipóteses, condutas e orientações só entram se a MÉDICA as disse, com as palavras dela. (2) Hipótese, condutas, orientações e retorno só valem se o trecho foi atribuído a M; se for P ou ?, não inclua. (3) Todo item precisa de "citacao": trecho copiado LITERALMENTE da transcrição (até 25 palavras, sem alterar nada, sem incluir o número do trecho nem rótulos Médica:/Paciente:). (4) Em "falantes" devolva uma entrada para CADA trecho numerado. (5) Responda APENAS um JSON válido: {"falantes":{"1":"M","2":"P"},"itens":[{"campo":"Queixa principal|Sintomas associados|Medicações em uso|Antecedentes|Hábitos|Hipótese dita pela médica|Condutas ditas pela médica|Orientações ditas pela médica|Retorno","texto":"...","citacao":"..."}],"anamnese":{"queixa":"","hda":"","antecedentes":"","medicacoes":"","habitos":""},"avaliacao":[{"fato":"...","nota":"..."}],"pendencias":[{"titulo":"...","motivo":"..."}],"resumo_paciente":"mensagem curta de WhatsApp em português com exames pedidos, orientações e retorno ditos pela médica"}. Em anamnese e pendencias use só o que está na conversa; campo sem informação fica vazio. Pendências são ações práticas derivadas do que foi dito (ex.: agendar retorno, cobrar exame). "avaliacao" lista apenas FATOS que comparam a conversa com o CADASTRO (ex.: medicação citada que não consta no cadastro; exame do cadastro com mais de 12 meses; peso do cadastro diferente do relato). Nunca recomende conduta. Se a conversa não for sobre essa paciente, devolva avaliacao vazia. CADASTRO: Paciente Exemplo A., 41 anos. Medicações cadastradas: losartana. Último TSH: 2,1 mUI/L em set/2025. Último peso aferido: 74,2 kg em abr/2026.';
+var PROMPT='Você é o redator de prontuário de uma clínica de endocrinologia no Brasil. Receberá a transcrição de uma consulta, em trechos numerados, e o cadastro da paciente. A transcrição pode vir sem identificação de quem fala ou com vozes detectadas automaticamente (Voz A, Voz B, entre colchetes antes do trecho). A mesma voz é sempre a mesma pessoa: decida quem é a médica e aplique a todos os trechos dessa voz. Atribua cada trecho a "M" (médica) ou "P" (paciente) pelo contexto (quem pergunta e conduz é a médica; quem relata sintomas e história é a paciente); em dúvida use "?". Um trecho pode misturar falas; atribua à voz predominante. Gere um RASCUNHO que a médica vai conferir. Regras: (1) Registre só o que foi dito. Nunca invente nem sugira diagnóstico, exame ou tratamento. Hipóteses, condutas e orientações só entram se a MÉDICA as disse, com as palavras dela. (2) Hipótese, condutas, orientações e retorno só valem se o trecho foi atribuído a M; se for P ou ?, não inclua. (3) Todo item precisa de "citacao": trecho copiado LITERALMENTE da transcrição (até 25 palavras, sem alterar nada, sem incluir o número do trecho nem rótulos Médica:/Paciente:). (4) Em "vozes" informe, para cada voz detectada (A, B, C), "M", "P" ou "?". Em "falantes" devolva entradas SOMENTE para trechos sem voz detectada (texto digitado ou colado) ou em que a voz detectada claramente não corresponde a quem fala; se todos os trechos têm voz, "falantes" é {}. Não repita por trecho o que a voz já define. (5) Responda APENAS um JSON válido: {"vozes":{"A":"M","B":"P"},"falantes":{},"itens":[{"campo":"Queixa principal|Sintomas associados|Medicações em uso|Antecedentes|Hábitos|Hipótese dita pela médica|Condutas ditas pela médica|Orientações ditas pela médica|Retorno","texto":"...","citacao":"..."}],"anamnese":{"queixa":"","hda":"","antecedentes":"","medicacoes":"","habitos":""},"avaliacao":[{"fato":"...","nota":"..."}],"pendencias":[{"titulo":"...","motivo":"..."}],"resumo_paciente":"mensagem curta de WhatsApp em português com exames pedidos, orientações e retorno ditos pela médica"}. Em anamnese e pendencias use só o que está na conversa; campo sem informação fica vazio. Pendências são ações práticas derivadas do que foi dito (ex.: agendar retorno, cobrar exame). "avaliacao" lista apenas FATOS que comparam a conversa com o CADASTRO (ex.: medicação citada que não consta no cadastro; exame do cadastro com mais de 12 meses; peso do cadastro diferente do relato). Nunca recomende conduta. Se a conversa não for sobre essa paciente, devolva avaliacao vazia. CADASTRO: Paciente Exemplo A., 41 anos. Medicações cadastradas: losartana. Último TSH: 2,1 mUI/L em set/2025. Último peso aferido: 74,2 kg em abr/2026.';
 async function analisar(){
   var t=S.tx.trim();if(!t||!API)return;
-  S.err='';S.cons='proc';S.stage='A IA está identificando quem fala, montando o rascunho e validando cada trecho. Pode levar até 1 minuto.';render();
+  S.err='';S.cons='proc';S.stage='A IA está identificando quem fala, montando o rascunho e validando cada trecho. Em consultas longas pode levar alguns minutos. Não feche esta página.';render();
   try{
-    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:MODEL,max_tokens:6000,system:PROMPT,messages:[{role:'user',content:'TRANSCRIÇÃO:\n'+parseFalas(t).map(function(f,i){return '['+(i+1)+']'+(f[3]?' ['+f[3]+']':'')+' '+f[1]}).join('\n')}]})});
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:S.model||MODEL,max_tokens:10000,system:PROMPT,messages:[{role:'user',content:'TRANSCRIÇÃO:\n'+parseFalas(t).map(function(f,i){return '['+(i+1)+']'+(f[3]?' ['+f[3]+']':'')+' '+f[1]}).join('\n')}]})});
     var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||('Erro '+r.status));
+    if(j.stop_reason==='max_tokens')throw new Error('A resposta da IA foi cortada por ser longa demais. Tente de novo.');
+    var ml=RATE.mod[S.model||MODEL]||RATE.mod['claude-sonnet-5-5'],us=j.usage||{},it=(us.input_tokens||0)+(us.cache_creation_input_tokens||0)+(us.cache_read_input_tokens||0),ot=us.output_tokens||0;
+    S.cost=S.cost||{};S.cost.llm={nome:ml[2],inTok:it,outTok:ot,usd:(it*ml[0]+ot*ml[1])/1e6};
+    var tot=(S.cost.dg?S.cost.dg.usd:0)+S.cost.llm.usd,lg=lsGet('samia_custo_v1',[]);lg.push({at:new Date().toISOString(),who:S.tester||'',rec:S.cost.dg?S.cost.dg.rec:0,billed:S.cost.dg?S.cost.dg.billed:0,model:ml[2],inTok:it,outTok:ot,usd:tot});lsSet('samia_custo_v1',lg.slice(-200));
     var txt=j.content.map(function(c){return c.text||''}).join(''),m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('A IA não devolveu um resultado legível. Tente de novo.');
     var d=JSON.parse(m[0]);S.proc=2;
     FALAS=parseFalas(t);var fl=d.falantes||{};
-    FALAS.forEach(function(f,i){if(f[0]==='x'){var q=String(fl[String(i+1)]||'?').toUpperCase();f[0]=q==='M'?'m':(q==='P'?'p':'x');f[3]=1}});
+    var vz={};Object.keys(d.vozes||{}).forEach(function(k){vz[String(k).replace(/^voz\s*/i,'').trim().toUpperCase()]=String(d.vozes[k]||'?').toUpperCase()});
+    FALAS.forEach(function(f,i){if(f[0]==='x'){var q=fl[String(i+1)];if(!q&&f[3])q=vz[f[3].replace(/^voz\s*/i,'').trim().toUpperCase()];q=String(q||'?').toUpperCase();f[0]=q==='M'?'m':(q==='P'?'p':'x');f[3]=1}});
     ITENS=(d.itens||[]).map(function(it,k){var ev=localizar(FALAS,it.citacao),mot='';
       if(!ev.length)mot='A citação não existe na conversa.';
       else if(/Hip[óo]tese|Condutas|Orienta|Retorno/i.test(it.campo||'')&&!ev.some(function(i){return FALAS[i][0]==='m'})){mot='O trecho não foi identificado como fala da médica.';ev=[]}
@@ -1003,7 +1050,7 @@ async function analisar(){
     go('revisao');
   }catch(e){S.cons='pre';S.err='Falhou: '+e.message;render()}
 }
-function resetCons(){gravando=false;try{recog&&recog.stop()}catch(e){}S.cons='pre';S.tx='';S.audioUrl=null;S.err='';FALAS=[];ITENS=[];AVALIA=[];S.n=0;S.itens={};S.signed=null;S.sent=false;S.msg=null;S.msgAI='';S.msgEdited=false;S.sel=null;S.editing=null;S.aval={};S.pendAI=[]}
+function resetCons(){gravando=false;try{recog&&recog.stop()}catch(e){}S.cons='pre';S.tx='';S.audioUrl=null;S.err='';FALAS=[];ITENS=[];AVALIA=[];S.n=0;S.itens={};S.signed=null;S.sent=false;S.msg=null;S.msgAI='';S.msgEdited=false;S.sel=null;S.editing=null;S.aval={};S.pendAI=[];S.cost=null}
 
 /* ---------- ações ---------- */
 async function assinar(){
@@ -1025,6 +1072,8 @@ document.addEventListener('click',function(e){
     case 'resetcons':resetCons();render();break;
     case 'rec':startRec();break;
     case 'stop':stopRec();break;
+    case 'recrecover':recRecover();break;
+    case 'recdiscard':recClear();S.recov=null;render();toast('Gravação descartada');break;
     case 'spk':S.spk=v;[].forEach.call(document.querySelectorAll('[data-act=spk]'),function(b){b.className=b.getAttribute('data-v')===v?'s':''});break;
     case 'analisar':analisar();break;
     case 'gerar':(async function(){var o={a:$('#gk1').value.trim()};var d=$('#gk2').value.trim();if(d)o.d=d;var p=$('#gp').value;if(!o.a||!p)return;$('#go2').value=await cifrar(JSON.stringify(o),p);$('#gk1').value='';$('#gk2').value=''})();break;
@@ -1087,6 +1136,7 @@ document.addEventListener('change',function(e){
   if(a==='avfile'){var fl2=el.files&&el.files[0];el.value='';if(fl2)favstart(fl2)}
   if(a==='bioforce'&&S.bio){S.bio.force=el.checked;render()}
   if(a==='biofile'){var fl0=el.files&&el.files[0];el.value='';if(fl0)bstart(fl0)}
+  if(a==='model'){S.model=el.value}
   if(a==='ptog'){var pp=S.pendAI[+el.getAttribute('data-k')];if(pp)pp.on=el.checked}
 });
 document.addEventListener('input',function(e){
@@ -1116,5 +1166,6 @@ function copiar(){
 }
 window.addEventListener('DOMContentLoaded',function(){var h=(location.hash||'').slice(1);if(VIEWS[h])S.view=h;render()});
 if(document.readyState!=='loading'){var h0=(location.hash||'').slice(1);if(VIEWS[h0])S.view=h0;render()}
+recCheck();
 })();
 </script>
