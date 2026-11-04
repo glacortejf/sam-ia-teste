@@ -204,6 +204,55 @@ textarea.in{height:auto;padding:12px 14px;line-height:1.5;resize:vertical}
   .table td,.table th{padding:10px 12px}
 }
 @media (prefers-reduced-motion:reduce){.rdot.on,.wave.on i{animation:none}}
+/*PAC-CSS*/
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.strip>div{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;min-width:0}
+.strip b{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:3px}
+.pk{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.pk>div{background:var(--bg);border-radius:14px;padding:14px 16px;min-width:0}
+.pk b{display:block;font-size:26px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;margin:2px 0}
+.pk small{display:block;color:var(--mut);font-size:12px}
+.card.tint{background:var(--warnbg);border-color:transparent}
+.card.tint .sec{color:var(--warn)}
+.gps{display:flex;flex-wrap:wrap;gap:8px}
+.gp{background:var(--surf);border-radius:10px;padding:7px 12px;font-size:13px}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.mini{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;width:100%;min-width:0;background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.mini:hover{border-color:var(--acc2)}
+.mini.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--soft)}
+.mini .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.mini .v small{font-size:12px;font-weight:500;color:var(--mut)}
+.tl2{display:flex;flex-direction:column;list-style:none;margin:0;padding:0}
+.tl2 li{display:grid;grid-template-columns:70px 14px minmax(0,1fr);gap:12px;padding-bottom:14px}
+.tl2 .dt{font-size:12px;font-weight:700;color:var(--mut);padding-top:10px}
+.tl2 .dd{width:12px;height:12px;border-radius:50%;margin-top:11px;position:relative;background:var(--acc2)}
+.tl2 li:not(:last-child) .dd::after{content:"";position:absolute;left:5px;top:14px;height:calc(100% + 30px);width:1px;background:var(--line)}
+.tl2 .bx{background:var(--bg);border-radius:12px;padding:10px 14px;min-width:0}
+.tl2 .t-exame .dd{background:var(--tele);box-shadow:0 0 0 1.5px var(--mut)}
+.tl2 .t-med .dd{background:var(--warn)}
+.tl2 .t-msg .dd{background:var(--mut)}
+.tl2 .t-marco .dd{background:var(--hi);box-shadow:0 0 0 1.5px var(--warn)}
+.cc{border:1px solid var(--line);border-radius:14px;background:var(--surf);overflow:hidden}
+.cc.open{border-color:var(--acc2)}
+.cch{display:flex;align-items:center;gap:14px;width:100%;border:0;background:none;padding:12px 16px;text-align:left}
+.cd{width:54px;flex:none;text-align:center;background:var(--soft);color:var(--acc);border-radius:12px;padding:6px 0;line-height:1.15}
+.cd b{display:block;font-size:15px;font-weight:800}
+.cd span{font-size:11px;font-weight:600}
+.chev{margin-left:auto;font-size:20px;color:var(--mut);width:24px;text-align:center}
+.ccb{display:flex;flex-direction:column;gap:14px;padding:4px 18px 18px 84px}
+.bl{margin:4px 0 0;padding-left:18px}
+.bl li{margin:2px 0}
+@media (max-width:640px){
+  .ccb{padding-left:18px}
+  .tl2 li{grid-template-columns:54px 12px minmax(0,1fr);gap:8px}
+  .pk b{font-size:22px}
+  .minis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mini .v{font-size:18px}
+}
+.cols.pacs{grid-template-columns:minmax(0,290px) minmax(0,1fr)}
+@media (max-width:1000px){.cols.pacs{grid-template-columns:minmax(0,1fr)}}
+/*PAC-END*/
 </style>
 <div id="app"></div>
 <script>
@@ -261,13 +310,13 @@ var AG0=[
  {id:7,doc:1,ini:840,fim:900,nome:'Paciente Exemplo G.',tipo:'pres',obs:'Retorno'}
 ];
 var DOCS=['Dra. Exemplo','Dr. Exemplo'];
-var MODS={micro:'Gravação com o microfone',transc:'Transcrição da voz',rascunho:'Rascunho da consulta com evidência',descarte:'Descarte de item sem evidência',aval:'Painel "Para sua avaliação"',pend:'Pendências e oportunidades da consulta',zap:'Resumo ao paciente pelo WhatsApp',agenda:'Agenda com consultas longas',anam:'Anamnese',brief:'Briefing da manhã',tl:'Timeline de saúde',mem:'Memória da relação',conf:'Confirmação preditiva',inat:'Recuperação de inativos',cont:'Conteúdo a partir da prática',intel:'Inteligência de atendimento'};
+var MODS={micro:'Gravação com o microfone',transc:'Transcrição da voz',rascunho:'Rascunho da consulta com evidência',descarte:'Descarte de item sem evidência',aval:'Painel "Para sua avaliação"',pend:'Pendências e oportunidades da consulta',zap:'Resumo ao paciente pelo WhatsApp',agenda:'Agenda com consultas longas',anam:'Anamnese',brief:'Briefing da manhã',tl:'Timeline de saúde',evol:'Evolução do paciente (gráficos)',hist:'Histórico: linha do tempo, consultas e exames',mem:'Memória da relação',conf:'Confirmação preditiva',inat:'Recuperação de inativos',cont:'Conteúdo a partir da prática',intel:'Inteligência de atendimento'};
 
 /* ---------- estado ---------- */
 var S={logged:false,login:1,view:'hoje',cons:'pre',consent:false,n:0,tick:0,since:0,speed:1,proc:0,paused:false,
   itens:{},sel:null,editing:null,aval:{},signed:null,signing:false,sent:false,msg:null,msgEdited:false,
   pend:{retorno:false,exames:true,check:true},futuro:[],agenda:AG0.slice(),agSel:3,formAg:false,agErr:'',agNovo:null,
-  tx:'',spk:'Médica',err:'',audioUrl:null,pendAI:[],msgAI:'',pac:'a',pacTab:'timeline',busca:'',anam:{queixa:'Ganho de peso e cansaço',hda:'Retorno de acompanhamento iniciado em set/2025.',antec:'Hipertensão arterial.',medic:'Losartana.',habitos:'Sedentária. Sono irregular.'},
+  tx:'',spk:'Médica',err:'',audioUrl:null,pendAI:[],msgAI:'',pac:'a',pacSer:null,pacFilt:'all',pacOpen:null,pacTab:'evol',busca:'',anam:{queixa:'Ganho de peso e cansaço',hda:'Retorno de acompanhamento iniciado em set/2025.',antec:'Hipertensão arterial.',medic:'Losartana.',habitos:'Sedentária. Sono irregular.'},
   conf:{},inat:null,post:null,toast:'',
   votes:lsGet('samia_votes',{}),notes:lsGet('samia_notes',''),tester:lsGet('samia_tester','')};
 var tToast=null;
@@ -353,32 +402,156 @@ function agenda(){
   '<div class="card flat"><div class="scroll"><div class="calh"><div></div><div>Dra. Exemplo <span class="sub">· Endocrinologia</span></div><div>Dr. Exemplo <span class="sub">· Endocrinologia</span></div></div><div class="cal"><div class="hrs">'+rows+'</div>'+cols+'</div></div></div>'+det+
   '<div class="sub">O sistema não deixa marcar duas consultas no mesmo horário para o mesmo médico, mesmo as longas (até 6 h).</div>'+vt('agenda')+'</div>';
 }
+/* ---------- prontuário: histórico e evolução (dados fictícios) ---------- */
+var nf=function(v,d){return Number(v).toFixed(d==null?0:d).replace('.',',')};
+var PR={
+ a:{sexo:'Feminino',alt:1.62,desde:'set/2025',medica:'Dra. Exemplo',hoje:14,hojeLab:'nov/26',
+  lab:{0:'set/25',5:'fev/26',7:'abr/26'},
+  tags:['Hipertensão arterial','Em uso de losartana','Acompanhamento metabólico'],
+  prox:'Hoje, 14:00 · Retorno por telemedicina',
+  medic:[['Losartana','50 mg, 1× ao dia','Uso contínuo, anterior ao acompanhamento']],alerg:'Nenhuma registrada',
+  ser:[
+   {k:'peso',n:'Peso',u:'kg',d:1,pts:[[0,66.0],[5,70.3],[7,74.2]]},
+   {k:'cint',n:'Cintura',u:'cm',d:0,pts:[[0,84],[5,89],[7,93]]},
+   {k:'pas',n:'Pressão arterial',u:'mmHg',d:0,pts:[[0,118,'118/76'],[5,122,'122/80'],[7,128,'128/82']]},
+   {k:'glic',n:'Glicemia de jejum',u:'mg/dL',d:0,lab:1,ref:[70,99],pts:[[0,88],[5,96]]},
+   {k:'a1c',n:'HbA1c',u:'%',d:1,lab:1,ref:[null,5.6],pts:[[0,5.2],[5,5.4]]},
+   {k:'ldl',n:'LDL',u:'mg/dL',d:0,lab:1,ref:[null,129],pts:[[0,108],[5,121]]},
+   {k:'hdl',n:'HDL',u:'mg/dL',d:0,lab:1,ref:[50,null],pts:[[0,58],[5,52]]},
+   {k:'tg',n:'Triglicerídeos',u:'mg/dL',d:0,lab:1,ref:[null,149],pts:[[0,96],[5,128]]},
+   {k:'vitd',n:'Vitamina D',u:'ng/mL',d:0,lab:1,ref:[30,100],pts:[[0,31],[5,28]]},
+   {k:'tsh',n:'TSH',u:'mUI/L',d:1,lab:1,ref:[0.4,4.0],pts:[[0,2.1]]}
+  ],
+  cons:[
+   {id:'c4',m:14,d:'nov/2026',tipo:'Retorno · Telemedicina',dur:'14:00 – 16:00',hoje:1,q:'Relato de ganho de 8 kg em 6 meses e cansaço.',pts:['Sem peso aferido nesta consulta (telemedicina).'],cond:[],ret:''},
+   {id:'c3',m:7,d:'abr/2026',tipo:'Retorno · Telemedicina',dur:'1 h 10 min',q:'Ganho de peso progressivo e cansaço leve.',pts:['Peso 74,2 kg, cintura 93 cm, PA 128/82.','Relata receio de medicamentos injetáveis.','Meta da paciente: voltar a usar o vestido do casamento da filha, em março.'],cond:['Reforço das orientações de alimentação e atividade física.'],ret:'Retorno em 6 meses'},
+   {id:'c2',m:5,d:'fev/2026',tipo:'Retorno · Presencial',dur:'1 h 25 min',q:'Acompanhamento do ganho de peso.',pts:['Peso 70,3 kg (+4,3 kg desde set/25), cintura 89 cm, PA 122/80.','Exames de fev/26 avaliados com a paciente.'],cond:['Orientação de caminhada e ajuste alimentar.'],ret:'Retorno em 2 meses'},
+   {id:'c1',m:0,d:'set/2025',tipo:'Primeira consulta · Presencial',dur:'1 h 50 min',q:'Dificuldade para emagrecer e metabolismo.',pts:['Peso 66,0 kg, cintura 84 cm, PA 118/76.','Antecedente de hipertensão arterial, em uso de losartana.'],cond:['Plano alimentar e atividade física orientados.','Exames de rotina solicitados.'],ret:'Retorno em 5 meses'}
+  ],
+  extra:[
+   {m:0,t:'med',ti:'Medicação em uso registrada',tx:'Losartana 50 mg ao dia, uso contínuo.'},
+   {m:1,t:'msg',ti:'Resumo da consulta enviado à paciente',tx:'Orientações de alimentação e atividade física.'},
+   {m:7,t:'marco',ti:'Meta da paciente registrada',tx:'Voltar a usar o vestido do casamento da filha, em março.'}
+  ],
+  mem:1,anam:1},
+ c:{sexo:'Masculino',alt:1.74,desde:'jan/2026',medica:'Dr. Exemplo',hoje:10,hojeLab:'nov/26',
+  lab:{0:'jan/26',3:'abr/26',6:'jul/26',9:'out/26'},
+  tags:['Diabetes tipo 2','Em uso de metformina'],
+  prox:'Sem consulta marcada',
+  medic:[['Metformina','850 mg, 2× ao dia','Desde jan/2026']],alerg:'Sulfa (reação cutânea relatada)',
+  ser:[
+   {k:'peso',n:'Peso',u:'kg',d:1,pts:[[0,86.4],[3,84.0],[6,82.1],[9,81.0]]},
+   {k:'pas',n:'Pressão arterial',u:'mmHg',d:0,pts:[[0,138,'138/86'],[3,134,'134/84'],[6,130,'130/82'],[9,128,'128/80']]},
+   {k:'a1c',n:'HbA1c',u:'%',d:1,lab:1,pts:[[0,8.4],[3,7.6],[6,7.2],[9,6.9]]},
+   {k:'glic',n:'Glicemia de jejum',u:'mg/dL',d:0,lab:1,pts:[[0,162],[3,138],[6,126],[9,118]]},
+   {k:'ldl',n:'LDL',u:'mg/dL',d:0,lab:1,pts:[[0,132],[9,104]]}
+  ],
+  cons:[
+   {id:'c4',m:9,d:'out/2026',tipo:'Retorno · Presencial',dur:'1 h 05 min',q:'Revisão dos exames de out/26.',pts:['Peso 81,0 kg, PA 128/80.','HbA1c 6,9% e glicemia de jejum 118 mg/dL.'],cond:['Manutenção do esquema atual.'],ret:'Retorno em 6 meses'},
+   {id:'c3',m:6,d:'jul/2026',tipo:'Retorno · Telemedicina',dur:'50 min',q:'Acompanhamento do diabetes.',pts:['Peso 82,1 kg, PA 130/82.','HbA1c 7,2%.'],cond:['Reforço de alimentação e caminhada.'],ret:'Retorno em 3 meses'},
+   {id:'c2',m:3,d:'abr/2026',tipo:'Retorno · Presencial',dur:'1 h 10 min',q:'Resposta ao início da metformina.',pts:['Peso 84,0 kg, PA 134/84.','HbA1c 7,6%.'],cond:['Mantida a metformina.'],ret:'Retorno em 3 meses'},
+   {id:'c1',m:0,d:'jan/2026',tipo:'Primeira consulta · Presencial',dur:'1 h 40 min',q:'Diagnóstico recente de diabetes tipo 2.',pts:['Peso 86,4 kg, PA 138/86.','HbA1c 8,4% e glicemia de jejum 162 mg/dL.'],cond:['Início de metformina 850 mg 2× ao dia.','Orientação alimentar.'],ret:'Retorno em 3 meses'}
+  ],
+  extra:[{m:0,t:'med',ti:'Início da metformina',tx:'850 mg, 2× ao dia.'}],
+  mem:0,anam:0}
+};
+var TIPOS={consulta:'Consultas',exame:'Exames',med:'Medicações',msg:'Mensagens',marco:'Marcos'};
+function sFlag(s,v){var r=s.ref;if(!r)return 0;return ((r[0]!=null&&v<r[0])||(r[1]!=null&&v>r[1]))?1:0}
+function refTxt(s){var r=s.ref;if(!r)return '';if(r[0]!=null&&r[1]!=null)return nf(r[0],s.d)+'–'+nf(r[1],s.d);if(r[1]!=null)return '≤ '+nf(r[1],s.d);return '≥ '+nf(r[0],s.d)}
+function ptTxt(s,p){return p[2]||nf(p[1],s.d)}
+function lastPt(s){return s.pts[s.pts.length-1]}
+function mAgo(pr,m){var d=pr.hoje-m;return d<=0?'hoje':'há '+d+(d===1?' mês':' meses')}
+function serSel(pr){var k=S.pacSer,s=pr.ser.filter(function(x){return x.k===k})[0];return s||pr.ser[0]}
+function delta(s){if(s.pts.length<2)return '';var a=s.pts[0],b=lastPt(s),dv=b[1]-a[1];var t=(dv>0?'▲ +':(dv<0?'▼ −':'■ '))+nf(Math.abs(dv),s.d)+' '+s.u;return t}
+function spark(s,pr){
+  var W=120,H=34,pad=4,vs=s.pts.map(function(p){return p[1]}),mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);if(mn===mx){mn-=1;mx+=1}
+  var X=function(m){return pad+(W-2*pad)*m/pr.hoje},Y=function(v){return H-pad-(H-2*pad)*(v-mn)/(mx-mn)};
+  var l=lastPt(s);
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="34" style="max-width:150px" aria-hidden="true"><polyline fill="none" stroke="var(--acc2)" stroke-width="2" stroke-linejoin="round" points="'+s.pts.map(function(p){return X(p[0])+','+Y(p[1])}).join(' ')+'"/><circle cx="'+X(l[0])+'" cy="'+Y(l[1])+'" r="3.5" fill="'+(sFlag(s,l[1])?'var(--bad)':'var(--acc2)')+'"/></svg>';
+}
+function bigChart(s,pr){
+  var W=640,H=250,x0=54,x1=616,y0=206,y1=30;
+  var vs=s.pts.map(function(p){return p[1]}),lo=Math.min.apply(null,vs),hi=Math.max.apply(null,vs),sp=hi-lo;if(sp===0)sp=Math.max(1,Math.abs(hi)*.1);
+  var mn=lo-sp*.35,mx=hi+sp*.35;
+  var X=function(m){return x0+18+(x1-x0-18)*m/pr.hoje},Y=function(v){return y0-(y0-y1)*(v-mn)/(mx-mn)};
+  var sv='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="'+esc(s.n)+': '+s.pts.map(function(p){return ptTxt(s,p)+' '+s.u+' em '+pr.lab[p[0]]}).join('; ')+'" style="max-width:720px">';
+  if(s.ref){var rb=Math.max(s.ref[0]==null?mn:s.ref[0],mn),rt=Math.min(s.ref[1]==null?mx:s.ref[1],mx);if(rt>rb)sv+='<rect x="'+x0+'" y="'+Y(rt)+'" width="'+(x1-x0)+'" height="'+(Y(rb)-Y(rt))+'" fill="var(--soft)"/><text x="'+(x1-6)+'" y="'+(Y(rt)+14)+'" text-anchor="end" font-size="11" font-weight="600" fill="var(--acc)">faixa de referência '+refTxt(s)+'</text>'}
+  for(var i=0;i<4;i++){var v=mn+(mx-mn)*i/3;sv+='<line x1="'+x0+'" x2="'+x1+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(x0-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+nf(v,s.d)+'</text>'}
+  sv+='<line x1="'+X(pr.hoje)+'" x2="'+X(pr.hoje)+'" y1="'+y1+'" y2="'+y0+'" stroke="var(--mut)" stroke-dasharray="4 4"/><text x="'+X(pr.hoje)+'" y="'+(y1-10)+'" text-anchor="end" font-size="11" fill="var(--mut)">hoje</text>';
+  if(s.pts.length>1)sv+='<polyline fill="none" stroke="var(--acc2)" stroke-width="2.5" stroke-linejoin="round" points="'+s.pts.map(function(p){return X(p[0])+','+Y(p[1])}).join(' ')+'"/>';
+  s.pts.forEach(function(p,i){var out=sFlag(s,p[1]),last=i===s.pts.length-1;sv+='<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(last?6:4.5)+'" fill="'+(out?'var(--bad)':'var(--acc2)')+'" stroke="var(--surf)" stroke-width="2"/><text x="'+X(p[0])+'" y="'+(Y(p[1])-13)+'" text-anchor="middle" font-size="12" font-weight="700" fill="'+(out?'var(--bad)':'var(--ink)')+'">'+esc(ptTxt(s,p))+'</text>'});
+  Object.keys(pr.lab).forEach(function(m){sv+='<text x="'+X(+m)+'" y="'+(H-12)+'" text-anchor="middle" font-size="11" fill="var(--mut)">'+pr.lab[m]+'</text>'});
+  sv+='<text x="'+X(pr.hoje)+'" y="'+(H-12)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+pr.hojeLab+'</text>';
+  return sv+'</svg>';
+}
+function lacunas(pr){
+  var g={};pr.ser.forEach(function(s){var m=lastPt(s)[0];(g[m]=g[m]||[]).push(s.n)});
+  return Object.keys(g).map(function(m){return {m:+m,n:g[m]}}).filter(function(x){return pr.hoje-x.m>=6}).sort(function(a,b){return a.m-b.m}).map(function(x){
+    var nm=x.n.length>3?x.n.slice(0,3).join(', ')+' e mais '+(x.n.length-3):x.n.join(', ');
+    return '<span class="gp"><b>'+esc(nm)+'</b> · '+mAgo(pr,x.m)+' ('+pr.lab[x.m]+')</span>'}).join('');
+}
+function eventos(pr){
+  var ev=[];
+  pr.cons.forEach(function(c){ev.push({m:c.m,o:2,t:'consulta',dt:c.d,ti:(c.hoje?'Consulta de hoje':c.tipo),tx:c.q+(c.pts[0]?' '+c.pts[0]:'')})});
+  var ms={};pr.ser.forEach(function(s){if(s.lab)s.pts.forEach(function(p){(ms[p[0]]=ms[p[0]]||[]).push([s,p])})});
+  Object.keys(ms).forEach(function(m){var l=ms[m],fora=l.filter(function(x){return sFlag(x[0],x[1][1])});
+    ev.push({m:+m,o:1,t:'exame',dt:pr.lab[m],ti:'Exames colhidos ('+l.length+' parâmetros)',tx:l.slice(0,4).map(function(x){return x[0].n+' '+ptTxt(x[0],x[1])}).join(' · ')+(l.length>4?' · e mais '+(l.length-4):''),flag:fora.length?fora.length+' fora da referência: '+fora.map(function(x){return x[0].n}).join(', '):''})});
+  pr.extra.forEach(function(e){ev.push({m:e.m,o:0,t:e.t,dt:pr.lab[e.m]||'',ti:e.ti,tx:e.tx})});
+  return ev.sort(function(a,b){return b.m-a.m||b.o-a.o});
+}
+function tabEvol(p,pr){
+  var s=serSel(pr),pesoS=pr.ser.filter(function(x){return x.k==='peso'})[0],pasS=pr.ser.filter(function(x){return x.k==='pas'})[0];
+  var kp='';
+  if(pesoS){var pl=lastPt(pesoS);kp+='<div><small>Peso ('+pr.lab[pl[0]]+')</small><b>'+nf(pl[1],1)+' kg</b><small>'+delta(pesoS)+' desde '+pr.lab[pesoS.pts[0][0]]+'</small></div><div><small>IMC</small><b>'+nf(pl[1]/(pr.alt*pr.alt),1)+'</b><small>altura '+nf(pr.alt,2)+' m</small></div>'}
+  if(pasS){var pp=lastPt(pasS);kp+='<div><small>Pressão ('+pr.lab[pp[0]]+')</small><b>'+pp[2]+'</b><small>mmHg</small></div>'}
+  var gl=pr.ser.filter(function(x){return x.k==='a1c'})[0];if(gl){var al=lastPt(gl);kp+='<div><small>HbA1c ('+pr.lab[al[0]]+')</small><b>'+nf(al[1],1)+'%</b><small>'+(gl.pts.length>1?delta(gl):'')+'</small></div>'}
+  kp+='<div><small>Consultas</small><b>'+pr.cons.length+'</b><small>desde '+pr.desde+'</small></div>';
+  var minis=pr.ser.map(function(x){var l=lastPt(x),out=sFlag(x,l[1]);return '<button type="button" class="mini'+(x.k===s.k?' on':'')+'" data-act="pser" data-v="'+x.k+'" aria-pressed="'+(x.k===s.k)+'"><span class="sec">'+esc(x.n)+'</span><span class="v num">'+esc(ptTxt(x,l))+' <small>'+x.u+'</small></span>'+spark(x,pr)+'<span class="sub">'+(x.pts.length>1?delta(x):'Uma medida')+(out?' · <b style="color:var(--bad)">fora da ref.</b>':'')+'</span></button>'}).join('');
+  var lac=lacunas(pr);
+  return '<div class="stack"><div class="pk">'+kp+'</div>'+
+   (lac?'<div class="card tint stack" style="gap:10px"><div class="sec">Sem medida recente</div><div class="gps">'+lac+'</div><div class="sub">Fatos do prontuário: quando cada medida foi feita pela última vez. Não é recomendação.</div></div>':'')+
+   '<div class="card stack" style="gap:12px"><div class="row wrap"><h2>'+esc(s.n)+' ao longo do acompanhamento</h2><span class="sub sp">'+esc(s.u)+(s.ref?' · referência '+refTxt(s):'')+'</span></div>'+bigChart(s,pr)+'</div>'+
+   '<div><div class="sec" style="margin-bottom:10px">Todas as medidas · clique para ampliar</div><div class="minis">'+minis+'</div></div>'+vt('evol')+'</div>';
+}
+function tabTl(p,pr){
+  var f=S.pacFilt||'all',ev=eventos(pr),cnt={};ev.forEach(function(e){cnt[e.t]=(cnt[e.t]||0)+1});
+  var chips='<div class="row wrap" style="gap:8px"><button type="button" class="chip'+(f==='all'?' on':'')+'" data-act="pfilt" data-v="all">Tudo ('+ev.length+')</button>'+Object.keys(TIPOS).filter(function(t){return cnt[t]}).map(function(t){return '<button type="button" class="chip'+(f===t?' on':'')+'" data-act="pfilt" data-v="'+t+'">'+TIPOS[t]+' ('+cnt[t]+')</button>'}).join('')+'</div>';
+  var li=ev.filter(function(e){return f==='all'||e.t===f}).map(function(e){
+    return '<li class="t-'+e.t+'"><span class="dt">'+esc(e.dt)+'</span><span class="dd"></span><div class="bx"><div class="row wrap" style="gap:8px"><b>'+esc(e.ti)+'</b><span class="pill">'+TIPOS[e.t].replace(/s$/,'')+'</span></div><div class="sub" style="margin-top:2px">'+esc(e.tx)+'</div>'+(e.flag?'<div style="margin-top:6px"><span class="pill warn">'+esc(e.flag)+'</span></div>':'')+'</div></li>'}).join('');
+  return '<div class="stack">'+chips+'<ul class="tl2">'+li+'</ul>'+vt('hist')+'</div>';
+}
+function tabCons(p,pr){
+  var li=pr.cons.map(function(c){var o=S.pacOpen===c.id||(S.pacOpen==null&&c===pr.cons[0]);
+    return '<div class="cc'+(o?' open':'')+'"><button type="button" class="cch" data-act="pexp" data-v="'+c.id+'" aria-expanded="'+o+'"><div class="cd"><b>'+esc(c.d.split('/')[0])+'</b><span>'+esc(c.d.split('/')[1]||'')+'</span></div><div style="flex:1;min-width:0"><div style="font-weight:700">'+esc(c.tipo)+'</div><div class="sub">'+esc(pr.medica)+' · '+esc(c.dur)+'</div></div>'+(c.hoje?'<span class="pill warn">Agendada</span>':'<span class="pill ok">Prontuário assinado</span>')+'<span class="chev" aria-hidden="true">'+(o?'−':'+')+'</span></button>'+
+    (o?'<div class="ccb"><div><div class="sec">Queixa</div><div>'+esc(c.q)+'</div></div>'+(c.pts.length?'<div><div class="sec">Registrado</div><ul class="bl">'+c.pts.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>':'')+(c.cond.length?'<div><div class="sec">Condutas da médica</div><ul class="bl">'+c.cond.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul></div>':'')+(c.ret?'<div><div class="sec">Retorno</div><div>'+esc(c.ret)+'</div></div>':'')+(c.hoje?'<div><button type="button" class="btn" data-act="startcons">Iniciar consulta</button></div>':'')+'</div>':'')+'</div>'}).join('');
+  return '<div class="stack">'+li+'<div class="sub">Dados fictícios para demonstração. No sistema real, cada consulta traz a gravação, a transcrição e os trechos que sustentam cada item.</div>'+vt('hist')+'</div>';
+}
+function tabEx(p,pr){
+  var labs=pr.ser.filter(function(s){return s.lab}),ms=[];labs.forEach(function(s){s.pts.forEach(function(q){if(ms.indexOf(q[0])<0)ms.push(q[0])})});ms.sort(function(a,b){return b-a});
+  var head='<tr><th>Parâmetro</th>'+ms.map(function(m){return '<th>'+pr.lab[m]+'</th>'}).join('')+'<th>Referência</th></tr>';
+  var rows=labs.map(function(s){return '<tr><td><b>'+esc(s.n)+'</b> <span class="sub">'+s.u+'</span></td>'+ms.map(function(m){var q=s.pts.filter(function(x){return x[0]===m})[0];if(!q)return '<td class="sub">—</td>';var out=sFlag(s,q[1]);return '<td class="num">'+(out?'<span class="pill bad">'+nf(q[1],s.d)+'</span>':nf(q[1],s.d))+'</td>'}).join('')+'<td class="sub">'+(refTxt(s)||'—')+'</td></tr>'}).join('');
+  return '<div class="stack"><div class="card flat" style="overflow-x:auto"><table class="table">'+head+rows+'</table></div><div class="sub">Em vermelho: fora da faixa de referência usada como exemplo. A leitura clínica é da médica. Dados fictícios.</div>'+vt('hist')+'</div>';
+}
+function pacRico(p,pr){
+  var tab={evol:'Evolução',tl:'Linha do tempo',cons:'Consultas',ex:'Exames'};if(pr.mem)tab.mem='Memória da relação';if(pr.anam)tab.anam='Anamnese';
+  var cur=tab[S.pacTab]?S.pacTab:'evol';
+  var head='<div class="row wrap" style="gap:16px;align-items:flex-start"><div class="avt">'+p.n.split(' ')[2].charAt(0)+'</div><div style="flex:1;min-width:220px"><div style="font-size:22px;font-weight:800;letter-spacing:-.01em">'+p.n+'</div><div class="sub">'+pr.sexo+' · '+p.i+' · acompanhada por '+esc(pr.medica)+' desde '+pr.desde+'</div><div class="tags">'+pr.tags.map(function(t){return '<span class="pill ok">'+esc(t)+'</span>'}).join('')+'</div></div></div>'+
+   '<div class="strip"><div><b>Medicações em uso</b>'+pr.medic.map(function(m){return esc(m[0])+' '+esc(m[1])+'<br><span class="sub">'+esc(m[2])+'</span>'}).join('<br>')+'</div><div><b>Alergias</b>'+esc(pr.alerg)+'</div><div><b>Próximo atendimento</b>'+esc(pr.prox)+'</div></div>';
+  var tabs='<div class="tabs" role="tablist">'+Object.keys(tab).map(function(k){return '<button type="button" role="tab" aria-selected="'+(cur===k)+'" class="tab'+(cur===k?' on':'')+'" data-act="ptab" data-v="'+k+'">'+tab[k]+'</button>'}).join('')+'</div>';
+  var body='';
+  if(cur==='evol')body=tabEvol(p,pr);else if(cur==='tl')body=tabTl(p,pr);else if(cur==='cons')body=tabCons(p,pr);else if(cur==='ex')body=tabEx(p,pr);
+  else if(cur==='mem')body='<div class="stack"><div class="row wrap"><h2>O que a clínica lembra sobre ela</h2>'+CT+'</div><ul class="mem"><li>Prefere contato por WhatsApp, à noite.</li><li>A filha, Ana, costuma acompanhar nas consultas.</li><li>Receio de medicamentos injetáveis, dito em abr/2026.</li><li>Meta dela: voltar a usar o vestido do casamento da filha, em março.</li></ul><div class="sub">Cada linha vem de algo que a médica registrou ou que a paciente disse e a médica confirmou. A paciente pode pedir para apagar.</div>'+vt('mem')+'</div>';
+  else body='<div class="stack"><h2>Anamnese</h2><div class="grid2"><label class="lbl" for="an1">Queixa<textarea class="in" id="an1" rows="2" data-bind="anam.queixa">'+esc(S.anam.queixa)+'</textarea></label><label class="lbl" for="an2">História da doença atual<textarea class="in" id="an2" rows="2" data-bind="anam.hda">'+esc(S.anam.hda)+'</textarea></label><label class="lbl" for="an3">Antecedentes<textarea class="in" id="an3" rows="2" data-bind="anam.antec">'+esc(S.anam.antec)+'</textarea></label><label class="lbl" for="an4">Hábitos<textarea class="in" id="an4" rows="2" data-bind="anam.habitos">'+esc(S.anam.habitos)+'</textarea></label><label class="lbl" for="an5">Medicações<textarea class="in" id="an5" rows="2" data-bind="anam.medic">'+esc(S.anam.medic||'')+'</textarea></label></div><div class="sub">Preenchida pela IA a partir da última consulta gravada. Na versão real, o paciente preenche pelo celular antes e você só confere. O modelo dos campos será o das médicas do Instituto Edras.</div>'+vt('anam')+'</div>';
+  return head+tabs+body;
+}
 function pacientes(){
   var q=S.busca.toLowerCase(),lista=PACIENTES.filter(function(p){return p.n.toLowerCase().indexOf(q)>=0||p.t.toLowerCase().indexOf(q)>=0});
   var p=PACIENTES.filter(function(x){return x.id===S.pac})[0]||PACIENTES[0];
-  var det='';
-  if(p.id==='a'){
-    var tab={timeline:'Timeline de saúde',mem:'Memória da relação',anam:'Anamnese'};
-    det='<div class="tabs" role="tablist">'+Object.keys(tab).map(function(k){return '<button type="button" role="tab" class="tab'+(S.pacTab===k?' on':'')+'" data-act="ptab" data-v="'+k+'">'+tab[k]+'</button>'}).join('')+'</div>';
-    if(S.pacTab==='timeline')det+='<div class="stack"><div class="row wrap"><h2>Peso aferido</h2>'+CT+'</div>'+chart()+
-      '<ul class="tl"><li><span class="dt">Hoje</span><span class="dd"></span><div><b>Retorno</b><div class="sub">Relato de +8 kg em 6 meses e cansaço. Sem peso aferido.</div></div></li><li><span class="dt">abr/2026</span><span class="dd"></span><div><b>Consulta</b><div class="sub">Peso 74,2 kg.</div></div></li><li><span class="dt">fev/2026</span><span class="dd"></span><div><b>Consulta</b><div class="sub">Peso 70,3 kg.</div></div></li><li><span class="dt">set/2025</span><span class="dd"></span><div><b>Primeira consulta e exame</b><div class="sub">Peso 66,0 kg. TSH 2,1 mUI/L.</div></div></li></ul>'+vt('tl')+'</div>';
-    if(S.pacTab==='mem')det+='<div class="stack"><div class="row wrap"><h2>O que a clínica lembra sobre ela</h2>'+CT+'</div><ul class="mem"><li>Prefere contato por WhatsApp, à noite.</li><li>A filha, Ana, costuma acompanhar nas consultas.</li><li>Receio de medicamentos injetáveis, dito em abr/2026.</li><li>Meta dela: voltar a usar o vestido do casamento da filha, em março.</li></ul><div class="sub">Cada linha vem de algo que a médica registrou ou que a paciente disse e a médica confirmou. A paciente pode pedir para apagar.</div>'+vt('mem')+'</div>';
-    if(S.pacTab==='anam')det+='<div class="stack"><h2>Anamnese</h2><div class="grid2"><label class="lbl" for="an1">Queixa<textarea class="in" id="an1" rows="2" data-bind="anam.queixa">'+esc(S.anam.queixa)+'</textarea></label><label class="lbl" for="an2">História da doença atual<textarea class="in" id="an2" rows="2" data-bind="anam.hda">'+esc(S.anam.hda)+'</textarea></label><label class="lbl" for="an3">Antecedentes<textarea class="in" id="an3" rows="2" data-bind="anam.antec">'+esc(S.anam.antec)+'</textarea></label><label class="lbl" for="an4">Hábitos<textarea class="in" id="an4" rows="2" data-bind="anam.habitos">'+esc(S.anam.habitos)+'</textarea></label><label class="lbl" for="an5">Medicações<textarea class="in" id="an5" rows="2" data-bind="anam.medic">'+esc(S.anam.medic||'')+'</textarea></label></div><div class="sub">Preenchida pela IA a partir da última consulta gravada. Na versão real, o paciente preenche pelo celular antes e você só confere. O modelo dos campos será o das médicas do Instituto Edras.</div>'+vt('anam')+'</div>';
-  } else det='<div class="sub">Nesta demonstração, só a Paciente Exemplo A. tem histórico completo. Abra a A. para ver a timeline, a memória da relação e a anamnese.</div>';
+  var pr=PR[p.id],det;
+  if(pr)det=pacRico(p,pr);
+  else det='<div class="row wrap" style="gap:16px"><div class="avt">'+p.n.split(' ')[2].charAt(0)+'</div><div><div style="font-size:22px;font-weight:800">'+p.n+'</div><div class="sub">'+p.i+' · último atendimento: '+p.u+'</div></div></div><div class="sub">Nesta demonstração, o histórico completo está nas pacientes A. (emagrecimento e metabolismo) e C. (diabetes tipo 2).</div>';
   return '<div class="page"><div class="head"><div class="t"><h1>Pacientes</h1></div><label class="lbl" for="busca" style="min-width:240px"><span class="sub">Buscar</span><input class="in" id="busca" type="search" placeholder="Nome ou motivo" value="'+esc(S.busca)+'" data-bind="busca"></label></div>'+
-  '<div class="cols" style="grid-template-columns:minmax(0,300px) minmax(0,1fr)"><div class="card flat lst">'+lista.map(function(x){return '<button type="button" class="it" data-act="pac" data-v="'+x.id+'" style="width:100%;border:0;border-top:1px solid var(--line2);background:'+(x.id===p.id?'var(--soft)':'none')+';text-align:left"><div class="nm">'+x.n+'<small>'+x.i+' · '+x.t+'</small></div></button>'}).join('')+(lista.length?'':'<div class="it sub">Nenhum paciente encontrado.</div>')+'</div><div class="card stack"><div class="row wrap"><div class="avt">'+p.n.split(' ')[2].charAt(0)+'</div><div><div style="font-size:20px;font-weight:800">'+p.n+'</div><div class="sub">'+p.i+' · último atendimento: '+p.u+'</div></div></div>'+det+'</div></div></div>';
-}
-function chart(){
-  var W=520,H=190,x0=46,x1=490,y0=158,y1=18,mn=64,mx=76;
-  var X=function(m){return x0+(x1-x0)*m/14},Y=function(w){return y0-(y0-y1)*(w-mn)/(mx-mn)};
-  var pts=[[0,66.0,'66,0'],[5,70.3,'70,3'],[7,74.2,'74,2']];
-  var s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Peso aferido: 66,0 kg em set/2025, 70,3 kg em fev/2026 e 74,2 kg em abr/2026" style="max-width:640px">';
-  [64,68,72,76].forEach(function(w){s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+Y(w)+'" y2="'+Y(w)+'" stroke="var(--line)"/><text x="'+(x0-8)+'" y="'+(Y(w)+4)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+w+'</text>'});
-  s+='<line x1="'+X(14)+'" x2="'+X(14)+'" y1="'+y1+'" y2="'+y0+'" stroke="var(--mut)" stroke-dasharray="4 4"/><text x="'+X(14)+'" y="'+(y1-4)+'" text-anchor="end" font-size="11" fill="var(--mut)">hoje: sem aferição</text>';
-  s+='<polyline fill="none" stroke="var(--acc2)" stroke-width="2.5" points="'+pts.map(function(p){return X(p[0])+','+Y(p[1])}).join(' ')+'"/>';
-  pts.forEach(function(p,i){s+='<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(i===2?6:4)+'" fill="var(--acc2)" stroke="var(--surf)" stroke-width="2"/><text x="'+X(p[0])+'" y="'+(Y(p[1])-12)+'" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">'+p[2]+' kg</text>'});
-  [[0,'set/25'],[5,'fev/26'],[7,'abr/26'],[14,'nov/26']].forEach(function(t){s+='<text x="'+X(t[0])+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="var(--mut)">'+t[1]+'</text>'});
-  return s+'</svg>';
+  '<div class="cols pacs"><div class="card flat lst">'+lista.map(function(x){return '<button type="button" class="it" data-act="pac" data-v="'+x.id+'" style="width:100%;border:0;border-top:1px solid var(--line2);background:'+(x.id===p.id?'var(--soft)':'none')+';text-align:left"><div class="nm">'+x.n+'<small>'+x.i+' · '+x.t+'</small></div>'+(PR[x.id]?'<span class="pill ok">histórico</span>':'')+'</button>'}).join('')+(lista.length?'':'<div class="it sub">Nenhum paciente encontrado.</div>')+'</div><div class="card stack">'+det+'</div></div></div>';
 }
 function consulta(){
   var c=S.cons,rec=c==='rec';
@@ -579,7 +752,10 @@ document.addEventListener('click',function(e){
     case 'agnew':S.formAg=true;S.agErr='';render();break;
     case 'agcancel':S.formAg=false;render();break;
     case 'agsave':agSave();break;
-    case 'pac':S.pac=v;render();break;
+    case 'pac':S.pac=v;S.pacSer=null;S.pacOpen=null;S.pacFilt='all';render();break;
+    case 'pser':S.pacSer=v;render();break;
+    case 'pfilt':S.pacFilt=v;render();break;
+    case 'pexp':S.pacOpen=(S.pacOpen===v?'':v);render();break;
     case 'ptab':S.pacTab=v;render();break;
     case 'vote':S.votes[k]=(S.votes[k]===v?undefined:v);if(S.votes[k]===undefined)delete S.votes[k];lsSet('samia_votes',S.votes);render();break;
     case 'cf':S.conf[v]=1;render();break;
