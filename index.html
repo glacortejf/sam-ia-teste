@@ -269,6 +269,7 @@ textarea.in{height:auto;padding:12px 14px;line-height:1.5;resize:vertical}
 .spin{width:18px;height:18px;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--acc);animation:spn 1s linear infinite;flex:none}
 @keyframes spn{to{transform:rotate(360deg)}}
 .t-bio .dd{background:var(--acc)}
+.rowsel td{background:var(--soft)}
 /*PAC-END*/
 </style>
 <div id="app"></div>
@@ -477,35 +478,39 @@ function sFlag(s,v){var r=s.ref;if(!r)return 0;return ((r[0]!=null&&v<r[0])||(r[
 function refTxt(s){var r=s.ref;if(!r)return '';if(r[0]!=null&&r[1]!=null)return nf(r[0],s.d)+'–'+nf(r[1],s.d);if(r[1]!=null)return '≤ '+nf(r[1],s.d);return '≥ '+nf(r[0],s.d)}
 function ptTxt(s,p){return p[2]||nf(p[1],s.d)}
 function lastPt(s){return s.pts[s.pts.length-1]}
-function mAgo(pr,m){var d=pr.hoje-m;return d<=0?'hoje':'há '+d+(d===1?' mês':' meses')}
+function mAgo(pr,m){var d=Math.round(pr.hoje-m);return d<=0?'neste mês':'há '+d+(d===1?' mês':' meses')}
+function ptLab(pr,p){var t=p[5];return t?t.slice(8,10)+'/'+t.slice(5,7)+'/'+t.slice(2,4):pr.lab[p[0]]}
+function tmin(pr){var m=0;pr.ser.forEach(function(s){s.pts.forEach(function(p){if(p[0]<m)m=p[0]})});return m}
+function fdt(iso){return iso?iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4):''}
+function fat(at){try{return new Date(at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',',' às')}catch(e){return ''}}
 function serSel(pr){var k=S.pacSer,s=pr.ser.filter(function(x){return x.k===k})[0];return s||pr.ser[0]}
 function delta(s){if(s.pts.length<2)return '';var a=s.pts[0],b=lastPt(s),dv=b[1]-a[1];var t=(dv>0?'▲ +':(dv<0?'▼ −':'■ '))+nf(Math.abs(dv),s.d)+' '+s.u;return t}
 function spark(s,pr){
   var W=120,H=34,pad=4,vs=s.pts.map(function(p){return p[1]}),mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs);if(mn===mx){mn-=1;mx+=1}
-  var X=function(m){return pad+(W-2*pad)*m/pr.hoje},Y=function(v){return H-pad-(H-2*pad)*(v-mn)/(mx-mn)};
+  var T0=tmin(pr),X=function(m){return pad+(W-2*pad)*(m-T0)/(pr.hoje-T0)},Y=function(v){return H-pad-(H-2*pad)*(v-mn)/(mx-mn)};
   var l=lastPt(s);
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="34" style="max-width:150px" aria-hidden="true"><polyline fill="none" stroke="var(--acc2)" stroke-width="2" stroke-linejoin="round" points="'+s.pts.map(function(p){return X(p[0])+','+Y(p[1])}).join(' ')+'"/><circle cx="'+X(l[0])+'" cy="'+Y(l[1])+'" r="3.5" fill="'+(sFlag(s,l[1])?'var(--bad)':'var(--acc2)')+'"/></svg>';
 }
 function bigChart(s,pr){
-  var W=640,H=250,x0=54,x1=616,y0=206,y1=30;
+  var W=640,H=262,x0=54,x1=616,y0=206,y1=30;
   var vs=s.pts.map(function(p){return p[1]}),lo=Math.min.apply(null,vs),hi=Math.max.apply(null,vs),sp=hi-lo;if(sp===0)sp=Math.max(1,Math.abs(hi)*.1);
   var mn=lo-sp*.35,mx=hi+sp*.35;
-  var X=function(m){return x0+18+(x1-x0-18)*m/pr.hoje},Y=function(v){return y0-(y0-y1)*(v-mn)/(mx-mn)};
-  var sv='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="'+esc(s.n)+': '+s.pts.map(function(p){return ptTxt(s,p)+' '+s.u+' em '+pr.lab[p[0]]}).join('; ')+'" style="max-width:720px">';
+  var T0=tmin(pr),X=function(m){return x0+18+(x1-x0-18)*(m-T0)/(pr.hoje-T0)},Y=function(v){return y0-(y0-y1)*(v-mn)/(mx-mn)};
+  var sv='<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="'+esc(s.n)+': '+s.pts.map(function(p){return ptTxt(s,p)+' '+s.u+' em '+ptLab(pr,p)}).join('; ')+'" style="max-width:720px">';
   if(s.ref){var rb=Math.max(s.ref[0]==null?mn:s.ref[0],mn),rt=Math.min(s.ref[1]==null?mx:s.ref[1],mx);if(rt>rb)sv+='<rect x="'+x0+'" y="'+Y(rt)+'" width="'+(x1-x0)+'" height="'+(Y(rb)-Y(rt))+'" fill="var(--soft)"/><text x="'+(x1-6)+'" y="'+(Y(rt)+14)+'" text-anchor="end" font-size="11" font-weight="600" fill="var(--acc)">faixa de referência '+refTxt(s)+'</text>'}
   for(var i=0;i<4;i++){var v=mn+(mx-mn)*i/3;sv+='<line x1="'+x0+'" x2="'+x1+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(x0-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+nf(v,s.d)+'</text>'}
   sv+='<line x1="'+X(pr.hoje)+'" x2="'+X(pr.hoje)+'" y1="'+y1+'" y2="'+y0+'" stroke="var(--mut)" stroke-dasharray="4 4"/><text x="'+X(pr.hoje)+'" y="'+(y1-10)+'" text-anchor="end" font-size="11" fill="var(--mut)">hoje</text>';
   if(s.pts.length>1)sv+='<polyline fill="none" stroke="var(--acc2)" stroke-width="2.5" stroke-linejoin="round" points="'+s.pts.map(function(p){return X(p[0])+','+Y(p[1])}).join(' ')+'"/>';
   s.pts.forEach(function(p,i){var out=sFlag(s,p[1]),last=i===s.pts.length-1;sv+='<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="'+(last?6:4.5)+'" fill="'+(out?'var(--bad)':'var(--acc2)')+'" stroke="var(--surf)" stroke-width="2"/><text x="'+X(p[0])+'" y="'+(Y(p[1])-13)+'" text-anchor="middle" font-size="12" font-weight="700" fill="'+(out?'var(--bad)':'var(--ink)')+'">'+esc(ptTxt(s,p))+'</text>'});
-  Object.keys(pr.lab).forEach(function(m){sv+='<text x="'+X(+m)+'" y="'+(H-12)+'" text-anchor="middle" font-size="11" fill="var(--mut)">'+pr.lab[m]+'</text>'});
-  sv+='<text x="'+X(pr.hoje)+'" y="'+(H-12)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+pr.hojeLab+'</text>';
+  var lastX=-999,row=0;s.pts.forEach(function(p){var x=X(p[0]);row=(x-lastX<50)?1-row:0;lastX=x;sv+='<line x1="'+x+'" x2="'+x+'" y1="'+y0+'" y2="'+(y0+5)+'" stroke="var(--mut)"/><text x="'+x+'" y="'+(y0+20+row*14)+'" text-anchor="middle" font-size="11" fill="var(--mut)">'+esc(ptLab(pr,p))+'</text>'});
+  sv+='<text x="'+X(pr.hoje)+'" y="'+(y0+20)+'" text-anchor="end" font-size="11" fill="var(--mut)">'+pr.hojeLab+'</text>';
   return sv+'</svg>';
 }
 function lacunas(pr){
-  var g={};pr.ser.forEach(function(s){var m=lastPt(s)[0];(g[m]=g[m]||[]).push(s.n)});
+  var g={},gl={};pr.ser.forEach(function(s){var m=lastPt(s)[0];(g[m]=g[m]||[]).push(s.n);gl[m]=ptLab(pr,lastPt(s))});
   return Object.keys(g).map(function(m){return {m:+m,n:g[m]}}).filter(function(x){return pr.hoje-x.m>=6}).sort(function(a,b){return a.m-b.m}).map(function(x){
     var nm=x.n.length>3?x.n.slice(0,3).join(', ')+' e mais '+(x.n.length-3):x.n.join(', ');
-    return '<span class="gp"><b>'+esc(nm)+'</b> · '+mAgo(pr,x.m)+' ('+pr.lab[x.m]+')</span>'}).join('');
+    return '<span class="gp"><b>'+esc(nm)+'</b> · '+mAgo(pr,x.m)+' ('+gl[x.m]+')</span>'}).join('');
 }
 function eventos(pr){
   var ev=[];
@@ -514,23 +519,29 @@ function eventos(pr){
   Object.keys(ms).forEach(function(m){var l=ms[m],fora=l.filter(function(x){return sFlag(x[0],x[1][1])});
     ev.push({m:+m,o:1,t:'exame',dt:pr.lab[m],ti:'Exames colhidos ('+l.length+' parâmetros)',tx:l.slice(0,4).map(function(x){return x[0].n+' '+ptTxt(x[0],x[1])}).join(' · ')+(l.length>4?' · e mais '+(l.length-4):''),flag:fora.length?fora.length+' fora da referência: '+fora.map(function(x){return x[0].n}).join(', '):''})});
   pr.extra.forEach(function(e){ev.push({m:e.m,o:0,t:e.t,dt:pr.lab[e.m]||'',ti:e.ti,tx:e.tx})});
-  (pr.bio||[]).forEach(function(r){var d=r.d,c=d.composicao,o=d.obesidade,dt=d.paciente.data;ev.push({m:r.m,o:1,t:'bio',dt:dt.slice(8,10)+'/'+dt.slice(5,7)+'/'+dt.slice(2,4),ti:'Bioimpedância importada',tx:[c.peso.kg!=null?'Peso '+nf(c.peso.kg,1)+' kg':'',o.taxa_gordura!=null?'Gordura '+nf(o.taxa_gordura,1)+'%':'',c.musculo_esqueletico.kg!=null?'Músculo esq. '+nf(c.musculo_esqueletico.kg,1)+' kg':'',d.pontuacao!=null?'Pontuação '+nf(d.pontuacao,0):''].filter(Boolean).join(' · ')})});
+  (pr.bio||[]).forEach(function(r){var d=r.d,c=d.composicao,o=d.obesidade,dt=d.paciente.data;ev.push({m:r.m,o:1,t:'bio',dt:dt.slice(8,10)+'/'+dt.slice(5,7)+'/'+dt.slice(2,4),ti:'Bioimpedância importada',tx:['Importada em '+fat(r.at),c.peso.kg!=null?'Peso '+nf(c.peso.kg,1)+' kg':'',o.taxa_gordura!=null?'Gordura '+nf(o.taxa_gordura,1)+'%':'',c.musculo_esqueletico.kg!=null?'Músculo esq. '+nf(c.musculo_esqueletico.kg,1)+' kg':'',d.pontuacao!=null?'Pontuação '+nf(d.pontuacao,0):''].filter(Boolean).join(' · ')})});
   return ev.sort(function(a,b){return b.m-a.m||b.o-a.o});
+}
+function serRows(s,pr){
+  var pts=s.pts.slice().sort(function(a,b){return b[0]-a[0]});
+  return pts.map(function(p,i){var prev=pts[i+1],dv=prev?p[1]-prev[1]:null,rec=p[3]==='bio'?(pr.bio||[]).filter(function(r){return r.id===p[4]})[0]:null;
+    var orig=rec?'Bioimpedância'+(rec.at?' · importada em '+fat(rec.at):''):(s.lab?'Exame':'Consulta');
+    return '<tr><td><b>'+esc(p[5]?fdt(p[5]):ptLab(pr,p))+'</b></td><td class="num">'+esc(ptTxt(s,p))+' <span class="sub">'+s.u+'</span></td><td class="num sub">'+(dv==null?'—':(dv>0?'▲ +':(dv<0?'▼ −':'■ '))+nf(Math.abs(dv),s.d))+'</td><td class="sub">'+orig+'</td></tr>'}).join('');
 }
 function tabEvol(p,pr){
   var s=serSel(pr),pesoS=pr.ser.filter(function(x){return x.k==='peso'})[0],pasS=pr.ser.filter(function(x){return x.k==='pas'})[0];
   var kp='';
-  if(pesoS){var pl=lastPt(pesoS);kp+='<div><small>Peso ('+pr.lab[pl[0]]+')</small><b>'+nf(pl[1],1)+' kg</b><small>'+delta(pesoS)+' desde '+pr.lab[pesoS.pts[0][0]]+'</small></div><div><small>IMC</small><b>'+nf(pl[1]/(pr.alt*pr.alt),1)+'</b><small>altura '+nf(pr.alt,2)+' m</small></div>'}
-  if(pasS){var pp=lastPt(pasS);kp+='<div><small>Pressão ('+pr.lab[pp[0]]+')</small><b>'+pp[2]+'</b><small>mmHg</small></div>'}
-  var gl=pr.ser.filter(function(x){return x.k==='a1c'})[0];if(gl){var al=lastPt(gl);kp+='<div><small>HbA1c ('+pr.lab[al[0]]+')</small><b>'+nf(al[1],1)+'%</b><small>'+(gl.pts.length>1?delta(gl):'')+'</small></div>'}
-  var gp=pr.ser.filter(function(x){return x.k==='b_gp'})[0];if(gp){var gq=lastPt(gp);kp+='<div><small>Gordura corporal ('+pr.lab[gq[0]]+')</small><b>'+nf(gq[1],1)+'%</b><small>'+(gp.pts.length>1?delta(gp):'bioimpedância')+'</small></div>'}
+  if(pesoS){var pl=lastPt(pesoS);kp+='<div><small>Peso ('+ptLab(pr,pl)+')</small><b>'+nf(pl[1],1)+' kg</b><small>'+delta(pesoS)+' desde '+ptLab(pr,pesoS.pts[0])+'</small></div><div><small>IMC</small><b>'+nf(pl[1]/(pr.alt*pr.alt),1)+'</b><small>altura '+nf(pr.alt,2)+' m</small></div>'}
+  if(pasS){var pp=lastPt(pasS);kp+='<div><small>Pressão ('+ptLab(pr,pp)+')</small><b>'+pp[2]+'</b><small>mmHg</small></div>'}
+  var gl=pr.ser.filter(function(x){return x.k==='a1c'})[0];if(gl){var al=lastPt(gl);kp+='<div><small>HbA1c ('+ptLab(pr,al)+')</small><b>'+nf(al[1],1)+'%</b><small>'+(gl.pts.length>1?delta(gl):'')+'</small></div>'}
+  var gp=pr.ser.filter(function(x){return x.k==='b_gp'})[0];if(gp){var gq=lastPt(gp);kp+='<div><small>Gordura corporal ('+ptLab(pr,gq)+')</small><b>'+nf(gq[1],1)+'%</b><small>'+(gp.pts.length>1?delta(gp):'bioimpedância')+'</small></div>'}
   kp+='<div><small>Consultas</small><b>'+pr.cons.length+'</b><small>desde '+pr.desde+'</small></div>';
   var mkm=function(x){var l=lastPt(x),out=sFlag(x,l[1]);return '<button type="button" class="mini'+(x.k===s.k?' on':'')+'" data-act="pser" data-v="'+x.k+'" aria-pressed="'+(x.k===s.k)+'"><span class="sec">'+esc(x.n)+'</span><span class="v num">'+esc(ptTxt(x,l))+' <small>'+x.u+'</small></span>'+spark(x,pr)+'<span class="sub">'+(x.pts.length>1?delta(x):'Uma medida')+(out?' · <b style="color:var(--bad)">fora da ref.</b>':'')+'</span></button>'};
   var minis=pr.ser.filter(function(x){return x.grp!=='bio'}).map(mkm).join('');var bser=pr.ser.filter(function(x){return x.grp==='bio'});var minis2=bser.length?'<div class="sec" style="margin:18px 0 10px">Composição corporal (bioimpedância)</div><div class="minis">'+bser.map(mkm).join('')+'</div>':'';
   var lac=lacunas(pr);
   return '<div class="stack"><div class="pk">'+kp+'</div>'+
    (lac?'<div class="card tint stack" style="gap:10px"><div class="sec">Sem medida recente</div><div class="gps">'+lac+'</div><div class="sub">Fatos do prontuário: quando cada medida foi feita pela última vez. Não é recomendação.</div></div>':'')+
-   '<div class="card stack" style="gap:12px"><div class="row wrap"><h2>'+esc(s.n)+' ao longo do acompanhamento</h2><span class="sub sp">'+esc(s.u)+(s.ref?' · referência '+refTxt(s):'')+'</span></div>'+bigChart(s,pr)+'</div>'+
+   '<div class="card stack" style="gap:12px"><div class="row wrap"><h2>'+esc(s.n)+' ao longo do acompanhamento</h2><span class="sub sp">'+esc(s.u)+(s.ref?' · referência '+refTxt(s):'')+'</span></div>'+bigChart(s,pr)+'<div style="overflow-x:auto"><table class="table tbi"><tr><th>Data</th><th>Valor</th><th>Variação</th><th>Origem do registro</th></tr>'+serRows(s,pr)+'</table></div></div>'+
    '<div><div class="sec" style="margin-bottom:10px">Todas as medidas · clique para ampliar</div><div class="minis">'+minis+'</div>'+minis2+'</div>'+vt('evol')+'</div>';
 }
 function tabTl(p,pr){
@@ -611,6 +622,7 @@ function bvalid(nd,p,pr){
   var w=[],e=[],P=nd.paciente,c=nd.composicao,o=nd.obesidade;
   if(c.peso.kg==null)e.push('O peso não foi lido. Preencha o campo Peso.');
   if(!P.data)e.push('A data da medição não foi lida. Informe no formato dd/mm/aaaa.');
+  else if(P.data>new Date().toISOString().slice(0,10))w.push('A data da medição ('+fdt(P.data)+') está no futuro. Confira.');
   var nameBad=P.nome&&!bsame(P.nome,p.n);
   if(!P.nome)w.push('O nome do paciente não aparece no relatório lido. Confira se é o paciente certo.');
   else if(nameBad)w.push('O nome no relatório ('+P.nome+') é diferente do paciente selecionado ('+p.n+').');
@@ -624,7 +636,7 @@ function bvalid(nd,p,pr){
   if(o.taxa_gordura!=null&&(o.taxa_gordura<2||o.taxa_gordura>70))w.push('Taxa de gordura fora do esperado. Confira.');
   (nd.observacoes||[]).forEach(function(t){w.push('A IA avisou: '+t)});
   return {w:w,e:e,nameBad:!!nameBad}}
-function bmIdx(pr,iso){var y=+iso.slice(0,4),m=+iso.slice(5,7),i=(y-pr.base[0])*12+(m-pr.base[1]);return Math.max(0,Math.min(pr.hoje,i))}
+function bmIdx(pr,iso){var y=+iso.slice(0,4),m=+iso.slice(5,7),d=+iso.slice(8,10),i=(y-pr.base[0])*12+(m-pr.base[1])+(d-1)/30.4;return Math.round(Math.min(pr.hoje,i)*100)/100}
 function blabel(iso){return MESES[+iso.slice(5,7)-1]+'/'+iso.slice(2,4)}
 function bpts(d){var c=d.composicao,o=d.obesidade,x=d.outros;return [
  ['peso','Peso','kg',1,c.peso.kg,null],
@@ -640,17 +652,15 @@ function bpts(d){var c=d.composicao,o=d.obesidade,x=d.outros;return [
 function bremove(pr,id){
   pr.ser.forEach(function(s){s.pts=s.pts.filter(function(p){return p[4]!==id})});
   pr.ser=pr.ser.filter(function(s){return s.grp!=='bio'||s.pts.length});
-  pr.bio=(pr.bio||[]).filter(function(r){return r.id!==id});
-  var used={};pr.bio.forEach(function(r){used[r.m]=1});Object.keys(pr._bl||{}).forEach(function(m){if(!used[m]){delete pr.lab[m];delete pr._bl[m]}})}
+  pr.bio=(pr.bio||[]).filter(function(r){return r.id!==id})}
 function bapply(pr,rec){
   bremove(pr,rec.id);
   var m=bmIdx(pr,rec.d.paciente.data);rec.m=m;
-  if(pr.lab[m]==null){pr.lab[m]=blabel(rec.d.paciente.data);pr._bl=pr._bl||{};pr._bl[m]=1}
   bpts(rec.d).forEach(function(b){if(b[4]==null)return;
     var s=pr.ser.filter(function(x){return x.k===b[0]})[0];
     if(!s){s={k:b[0],n:b[1],u:b[2],d:b[3],grp:'bio',pts:[]};if(b[5])s.ref=b[5];pr.ser.push(s)}
     else if(s.grp==='bio'&&b[5])s.ref=b[5];
-    s.pts.push([m,b[4],null,'bio',rec.id]);s.pts.sort(function(a,b2){return a[0]-b2[0]})});
+    s.pts.push([m,b[4],null,'bio',rec.id,rec.d.paciente.data]);s.pts.sort(function(a,b2){return a[0]-b2[0]})});
   pr.bio=(pr.bio||[]);pr.bio.push(rec);pr.bio.sort(function(a,b2){return (b2.d.paciente.data+(b2.d.paciente.hora||'')).localeCompare(a.d.paciente.data+(a.d.paciente.hora||''))})}
 function bsave(){
   var st=lsGet('samia_bio_v1',{});PACIENTES.forEach(function(p){var pr=PR[p.id];if(pr&&pr.bio)st[p.id]=pr.bio.map(function(r){return {id:r.id,file:r.file,at:r.at,d:r.d}})});lsSet('samia_bio_v1',st)}
@@ -712,12 +722,12 @@ function bMap(tit,g){return '<div class="card stack" style="gap:10px"><h3 style=
 function bView(p,pr){
   var L=pr.bio,r=L.filter(function(x){return x.id===S.bioSel})[0]||L[0],d=r.d,P=d.paciente,c=d.composicao,o=d.obesidade,ot=d.outros,cp=d.controle_peso;
   var idx=L.indexOf(r),prev=L[idx+1],dl=function(a,b,dg){if(a==null||b==null)return '—';var x=a-b;return (x>0?'▲ +':(x<0?'▼ −':'■ '))+nf(Math.abs(x),dg)};
-  var chips=L.length>1?'<div class="row wrap" style="gap:8px">'+L.map(function(x){var dt=x.d.paciente.data;return '<button type="button" class="chip'+(x.id===r.id?' on':'')+'" data-act="biosel" data-v="'+x.id+'">'+dt.slice(8,10)+'/'+dt.slice(5,7)+'/'+dt.slice(0,4)+'</button>'}).join('')+'</div>':'';
+  var chips='<div class="card stack" style="gap:8px"><h3 style="margin:0">Importações registradas ('+L.length+')</h3><div style="overflow-x:auto"><table class="table tbi"><tr><th>Data da medição</th><th>Importado em</th><th>Peso</th><th>Gordura</th><th>Pontuação</th><th>Arquivo</th><th></th></tr>'+L.map(function(x){var dd=x.d,sel=x.id===r.id;return '<tr'+(sel?' class="rowsel"':'')+'><td><b>'+fdt(dd.paciente.data)+(dd.paciente.hora?' '+esc(dd.paciente.hora):'')+'</b></td><td class="sub">'+esc(fat(x.at))+'</td><td class="num">'+nfv(dd.composicao.peso.kg)+' kg</td><td class="num">'+nfv(dd.obesidade.taxa_gordura)+'%</td><td class="num">'+nfv(dd.pontuacao,0)+'</td><td class="sub" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">'+esc(x.file||'')+'</td><td>'+(sel?'<span class="pill ok">aberto</span>':'<button type="button" class="btn soft sm" data-act="biosel" data-v="'+x.id+'">Abrir</button>')+'</td></tr>'}).join('')+'</table></div><div class="sub">Cada importação guarda a data da medição e o momento em que foi importada. Os valores aparecem nos gráficos da aba Evolução, na data da medição.</div></div>';
   var rows=Object.keys(BLAB).map(function(k){var b=c[k];return '<tr><td><b>'+BLAB[k]+'</b></td><td class="num">'+nfv(b.kg)+' <span class="sub">kg</span></td><td class="sub">'+(b.min!=null?nfv(b.min)+'–'+nfv(b.max):'—')+'</td><td>'+rbar(b.kg,b.min,b.max)+'</td><td class="num">'+nfv(b.pct)+'%</td><td>'+pillAv(b.avaliacao)+'</td></tr>'}).join('');
   var kp=[['Gordura corporal',nfv(o.taxa_gordura)+'%',pillAv(o.taxa_gordura_avaliacao)],['IMC',nfv(o.imc),pillAv(o.imc_avaliacao)],['Gordura visceral',nfv(ot.gordura_visceral,0),'grau'],['Taxa metabólica basal',nfv(ot.taxa_metabolica_basal,0),'kcal'],['Idade do corpo',nfv(ot.idade_corpo,0),'anos'],['Peso livre de gordura',nfv(ot.peso_livre_de_gordura),'kg'],['Gordura subcutânea',nfv(ot.gordura_subcutanea_pct)+'%',''],['SMI',nfv(ot.smi),'kg/m²'],['WHR',nfv(ot.whr,2),'']].map(function(x){return '<div><small>'+x[0]+'</small><b>'+x[1]+'</b><small>'+x[2]+'</small></div>'}).join('');
   var cmp=prev?'<div class="card stack" style="gap:8px"><h3 style="margin:0">Comparação com '+prev.d.paciente.data.slice(8,10)+'/'+prev.d.paciente.data.slice(5,7)+'/'+prev.d.paciente.data.slice(0,4)+'</h3><div style="overflow-x:auto"><table class="table tbi"><tr><th></th><th>Anterior</th><th>Esta</th><th>Variação</th></tr>'+[['Peso (kg)',prev.d.composicao.peso.kg,c.peso.kg,1],['Gordura corporal (%)',prev.d.obesidade.taxa_gordura,o.taxa_gordura,1],['Massa gorda (kg)',prev.d.composicao.gordura_corporal.kg,c.gordura_corporal.kg,1],['Músculo esquelético (kg)',prev.d.composicao.musculo_esqueletico.kg,c.musculo_esqueletico.kg,1],['IMC',prev.d.obesidade.imc,o.imc,1],['Gordura visceral',prev.d.outros.gordura_visceral,ot.gordura_visceral,0],['Pontuação',prev.d.pontuacao,d.pontuacao,0]].map(function(x){return '<tr><td>'+x[0]+'</td><td class="num">'+nfv(x[1],x[3])+'</td><td class="num">'+nfv(x[2],x[3])+'</td><td class="num">'+dl(x[2],x[1],x[3])+'</td></tr>'}).join('')+'</table></div></div>':'';
   var imp='<div class="card flat" style="overflow-x:auto"><table class="table tbi"><tr><th>Z (Ω)</th>'+Object.keys(SLAB).map(function(k){return '<th>'+SLAB[k]+'</th>'}).join('')+'</tr>'+[['f20khz','20 kHz'],['f100khz','100 kHz']].map(function(f){return '<tr><td><b>'+f[1]+'</b></td>'+Object.keys(SLAB).map(function(k){return '<td class="num">'+nfv(d.impedancia[f[0]][k])+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>';
-  return '<div class="stack">'+chips+'<div class="card stack"><div class="row wrap" style="gap:14px;align-items:flex-start"><div style="flex:1;min-width:200px"><div class="sec">Relatório de bioimpedância</div><div style="font-size:18px;font-weight:800">'+P.data.slice(8,10)+'/'+P.data.slice(5,7)+'/'+P.data.slice(0,4)+(P.hora?' às '+esc(P.hora):'')+'</div><div class="sub">'+esc(P.equipamento||'Equipamento não identificado')+' · nome no relatório: '+esc(P.nome||'não lido')+' · arquivo: '+esc(r.file||'')+'</div></div><div class="score"><b class="num">'+nfv(d.pontuacao,0)+'</b><span>/100 pontos</span></div></div>'+
+  return '<div class="stack">'+chips+'<div class="card stack"><div class="row wrap" style="gap:14px;align-items:flex-start"><div style="flex:1;min-width:200px"><div class="sec">Relatório de bioimpedância</div><div style="font-size:18px;font-weight:800">'+P.data.slice(8,10)+'/'+P.data.slice(5,7)+'/'+P.data.slice(0,4)+(P.hora?' às '+esc(P.hora):'')+'</div><div class="sub">Importado em '+esc(fat(r.at))+' · '+esc(P.equipamento||'Equipamento não identificado')+' · nome no relatório: '+esc(P.nome||'não lido')+' · arquivo: '+esc(r.file||'')+'</div></div><div class="score"><b class="num">'+nfv(d.pontuacao,0)+'</b><span>/100 pontos</span></div></div>'+
    '<div class="pk">'+kp+'</div></div>'+
    '<div class="card stack" style="gap:8px"><h3 style="margin:0">Composição corporal</h3><div style="overflow-x:auto"><table class="table tbi"><tr><th></th><th>Medição</th><th>Faixa</th><th>Posição</th><th>Proporção</th><th>Avaliação</th></tr>'+rows+'</table></div><div class="sub">Obesidade (peso atual / peso alvo): '+nfv(o.obesidade_pct,0)+'% · '+esc(o.obesidade_avaliacao||'—')+' · tipo de corpo: '+esc(o.tipo_corpo||'—')+'</div></div>'+
    '<div class="card stack" style="gap:8px"><h3 style="margin:0">Controle de peso</h3><div class="pk"><div><small>Peso alvo</small><b>'+nfv(cp.peso_alvo)+'</b><small>kg</small></div><div><small>Controle de peso</small><b>'+nfv(cp.controle_de_peso)+'</b><small>kg</small></div><div><small>Controle de gordura</small><b>'+nfv(cp.controle_de_gordura)+'</b><small>kg</small></div><div><small>Controle muscular</small><b>'+nfv(cp.controle_muscular)+'</b><small>kg</small></div></div></div>'+
