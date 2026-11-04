@@ -252,6 +252,23 @@ textarea.in{height:auto;padding:12px 14px;line-height:1.5;resize:vertical}
 }
 .cols.pacs{grid-template-columns:minmax(0,290px) minmax(0,1fr)}
 @media (max-width:1000px){.cols.pacs{grid-template-columns:minmax(0,1fr)}}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.bi{height:36px;padding:0 8px;font-size:14px;min-width:56px}
+.tbi td:first-child{white-space:normal;min-width:96px}
+.tbi td,.tbi th{font-size:13px}
+.bi.miss{border-style:dashed;border-color:var(--warn);background:var(--warnbg)}
+.tbi td,.tbi th{padding:8px 8px;white-space:nowrap}
+.bioreview h3,.stack h3{font-size:15px;font-weight:800;margin:8px 0 0}
+.bmaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.bmap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bcell{background:var(--bg);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0}
+.bcell b{font-size:17px;font-variant-numeric:tabular-nums}
+.bcell.tr{background:var(--soft)}
+.score{text-align:right}.score b{font-size:44px;font-weight:800;color:var(--acc);letter-spacing:-.02em}.score span{color:var(--mut);font-weight:600}
+.biodrop{border:2px dashed var(--line)}
+.spin{width:18px;height:18px;border-radius:50%;border:3px solid var(--soft);border-top-color:var(--acc);animation:spn 1s linear infinite;flex:none}
+@keyframes spn{to{transform:rotate(360deg)}}
+.t-bio .dd{background:var(--acc)}
 /*PAC-END*/
 </style>
 <div id="app"></div>
@@ -310,13 +327,13 @@ var AG0=[
  {id:7,doc:1,ini:840,fim:900,nome:'Paciente Exemplo G.',tipo:'pres',obs:'Retorno'}
 ];
 var DOCS=['Dra. Exemplo','Dr. Exemplo'];
-var MODS={micro:'Gravação com o microfone',transc:'Transcrição da voz',rascunho:'Rascunho da consulta com evidência',descarte:'Descarte de item sem evidência',aval:'Painel "Para sua avaliação"',pend:'Pendências e oportunidades da consulta',zap:'Resumo ao paciente pelo WhatsApp',agenda:'Agenda com consultas longas',anam:'Anamnese',brief:'Briefing da manhã',tl:'Timeline de saúde',evol:'Evolução do paciente (gráficos)',hist:'Histórico: linha do tempo, consultas e exames',mem:'Memória da relação',conf:'Confirmação preditiva',inat:'Recuperação de inativos',cont:'Conteúdo a partir da prática',intel:'Inteligência de atendimento'};
+var MODS={micro:'Gravação com o microfone',transc:'Transcrição da voz',rascunho:'Rascunho da consulta com evidência',descarte:'Descarte de item sem evidência',aval:'Painel "Para sua avaliação"',pend:'Pendências e oportunidades da consulta',zap:'Resumo ao paciente pelo WhatsApp',agenda:'Agenda com consultas longas',anam:'Anamnese',brief:'Briefing da manhã',tl:'Timeline de saúde',evol:'Evolução do paciente (gráficos)',hist:'Histórico: linha do tempo, consultas e exames',bio:'Importação de bioimpedância',mem:'Memória da relação',conf:'Confirmação preditiva',inat:'Recuperação de inativos',cont:'Conteúdo a partir da prática',intel:'Inteligência de atendimento'};
 
 /* ---------- estado ---------- */
 var S={logged:false,login:1,view:'hoje',cons:'pre',consent:false,n:0,tick:0,since:0,speed:1,proc:0,paused:false,
   itens:{},sel:null,editing:null,aval:{},signed:null,signing:false,sent:false,msg:null,msgEdited:false,
   pend:{retorno:false,exames:true,check:true},futuro:[],agenda:AG0.slice(),agSel:3,formAg:false,agErr:'',agNovo:null,
-  tx:'',spk:'Médica',err:'',audioUrl:null,pendAI:[],msgAI:'',pac:'a',pacSer:null,pacFilt:'all',pacOpen:null,pacTab:'evol',busca:'',anam:{queixa:'Ganho de peso e cansaço',hda:'Retorno de acompanhamento iniciado em set/2025.',antec:'Hipertensão arterial.',medic:'Losartana.',habitos:'Sedentária. Sono irregular.'},
+  tx:'',spk:'Médica',err:'',audioUrl:null,pendAI:[],msgAI:'',pac:'a',pacSer:null,pacFilt:'all',pacOpen:null,bio:null,bioSel:null,bioOk:false,pacTab:'evol',busca:'',anam:{queixa:'Ganho de peso e cansaço',hda:'Retorno de acompanhamento iniciado em set/2025.',antec:'Hipertensão arterial.',medic:'Losartana.',habitos:'Sedentária. Sono irregular.'},
   conf:{},inat:null,post:null,toast:'',
   votes:lsGet('samia_votes',{}),notes:lsGet('samia_notes',''),tester:lsGet('samia_tester','')};
 var tToast=null;
@@ -455,7 +472,7 @@ var PR={
   extra:[{m:0,t:'med',ti:'Início da metformina',tx:'850 mg, 2× ao dia.'}],
   mem:0,anam:0}
 };
-var TIPOS={consulta:'Consultas',exame:'Exames',med:'Medicações',msg:'Mensagens',marco:'Marcos'};
+var TIPOS={consulta:'Consultas',exame:'Exames',bio:'Bioimpedância',med:'Medicações',msg:'Mensagens',marco:'Marcos'};
 function sFlag(s,v){var r=s.ref;if(!r)return 0;return ((r[0]!=null&&v<r[0])||(r[1]!=null&&v>r[1]))?1:0}
 function refTxt(s){var r=s.ref;if(!r)return '';if(r[0]!=null&&r[1]!=null)return nf(r[0],s.d)+'–'+nf(r[1],s.d);if(r[1]!=null)return '≤ '+nf(r[1],s.d);return '≥ '+nf(r[0],s.d)}
 function ptTxt(s,p){return p[2]||nf(p[1],s.d)}
@@ -497,6 +514,7 @@ function eventos(pr){
   Object.keys(ms).forEach(function(m){var l=ms[m],fora=l.filter(function(x){return sFlag(x[0],x[1][1])});
     ev.push({m:+m,o:1,t:'exame',dt:pr.lab[m],ti:'Exames colhidos ('+l.length+' parâmetros)',tx:l.slice(0,4).map(function(x){return x[0].n+' '+ptTxt(x[0],x[1])}).join(' · ')+(l.length>4?' · e mais '+(l.length-4):''),flag:fora.length?fora.length+' fora da referência: '+fora.map(function(x){return x[0].n}).join(', '):''})});
   pr.extra.forEach(function(e){ev.push({m:e.m,o:0,t:e.t,dt:pr.lab[e.m]||'',ti:e.ti,tx:e.tx})});
+  (pr.bio||[]).forEach(function(r){var d=r.d,c=d.composicao,o=d.obesidade,dt=d.paciente.data;ev.push({m:r.m,o:1,t:'bio',dt:dt.slice(8,10)+'/'+dt.slice(5,7)+'/'+dt.slice(2,4),ti:'Bioimpedância importada',tx:[c.peso.kg!=null?'Peso '+nf(c.peso.kg,1)+' kg':'',o.taxa_gordura!=null?'Gordura '+nf(o.taxa_gordura,1)+'%':'',c.musculo_esqueletico.kg!=null?'Músculo esq. '+nf(c.musculo_esqueletico.kg,1)+' kg':'',d.pontuacao!=null?'Pontuação '+nf(d.pontuacao,0):''].filter(Boolean).join(' · ')})});
   return ev.sort(function(a,b){return b.m-a.m||b.o-a.o});
 }
 function tabEvol(p,pr){
@@ -505,13 +523,15 @@ function tabEvol(p,pr){
   if(pesoS){var pl=lastPt(pesoS);kp+='<div><small>Peso ('+pr.lab[pl[0]]+')</small><b>'+nf(pl[1],1)+' kg</b><small>'+delta(pesoS)+' desde '+pr.lab[pesoS.pts[0][0]]+'</small></div><div><small>IMC</small><b>'+nf(pl[1]/(pr.alt*pr.alt),1)+'</b><small>altura '+nf(pr.alt,2)+' m</small></div>'}
   if(pasS){var pp=lastPt(pasS);kp+='<div><small>Pressão ('+pr.lab[pp[0]]+')</small><b>'+pp[2]+'</b><small>mmHg</small></div>'}
   var gl=pr.ser.filter(function(x){return x.k==='a1c'})[0];if(gl){var al=lastPt(gl);kp+='<div><small>HbA1c ('+pr.lab[al[0]]+')</small><b>'+nf(al[1],1)+'%</b><small>'+(gl.pts.length>1?delta(gl):'')+'</small></div>'}
+  var gp=pr.ser.filter(function(x){return x.k==='b_gp'})[0];if(gp){var gq=lastPt(gp);kp+='<div><small>Gordura corporal ('+pr.lab[gq[0]]+')</small><b>'+nf(gq[1],1)+'%</b><small>'+(gp.pts.length>1?delta(gp):'bioimpedância')+'</small></div>'}
   kp+='<div><small>Consultas</small><b>'+pr.cons.length+'</b><small>desde '+pr.desde+'</small></div>';
-  var minis=pr.ser.map(function(x){var l=lastPt(x),out=sFlag(x,l[1]);return '<button type="button" class="mini'+(x.k===s.k?' on':'')+'" data-act="pser" data-v="'+x.k+'" aria-pressed="'+(x.k===s.k)+'"><span class="sec">'+esc(x.n)+'</span><span class="v num">'+esc(ptTxt(x,l))+' <small>'+x.u+'</small></span>'+spark(x,pr)+'<span class="sub">'+(x.pts.length>1?delta(x):'Uma medida')+(out?' · <b style="color:var(--bad)">fora da ref.</b>':'')+'</span></button>'}).join('');
+  var mkm=function(x){var l=lastPt(x),out=sFlag(x,l[1]);return '<button type="button" class="mini'+(x.k===s.k?' on':'')+'" data-act="pser" data-v="'+x.k+'" aria-pressed="'+(x.k===s.k)+'"><span class="sec">'+esc(x.n)+'</span><span class="v num">'+esc(ptTxt(x,l))+' <small>'+x.u+'</small></span>'+spark(x,pr)+'<span class="sub">'+(x.pts.length>1?delta(x):'Uma medida')+(out?' · <b style="color:var(--bad)">fora da ref.</b>':'')+'</span></button>'};
+  var minis=pr.ser.filter(function(x){return x.grp!=='bio'}).map(mkm).join('');var bser=pr.ser.filter(function(x){return x.grp==='bio'});var minis2=bser.length?'<div class="sec" style="margin:18px 0 10px">Composição corporal (bioimpedância)</div><div class="minis">'+bser.map(mkm).join('')+'</div>':'';
   var lac=lacunas(pr);
   return '<div class="stack"><div class="pk">'+kp+'</div>'+
    (lac?'<div class="card tint stack" style="gap:10px"><div class="sec">Sem medida recente</div><div class="gps">'+lac+'</div><div class="sub">Fatos do prontuário: quando cada medida foi feita pela última vez. Não é recomendação.</div></div>':'')+
    '<div class="card stack" style="gap:12px"><div class="row wrap"><h2>'+esc(s.n)+' ao longo do acompanhamento</h2><span class="sub sp">'+esc(s.u)+(s.ref?' · referência '+refTxt(s):'')+'</span></div>'+bigChart(s,pr)+'</div>'+
-   '<div><div class="sec" style="margin-bottom:10px">Todas as medidas · clique para ampliar</div><div class="minis">'+minis+'</div></div>'+vt('evol')+'</div>';
+   '<div><div class="sec" style="margin-bottom:10px">Todas as medidas · clique para ampliar</div><div class="minis">'+minis+'</div>'+minis2+'</div>'+vt('evol')+'</div>';
 }
 function tabTl(p,pr){
   var f=S.pacFilt||'all',ev=eventos(pr),cnt={};ev.forEach(function(e){cnt[e.t]=(cnt[e.t]||0)+1});
@@ -533,13 +553,13 @@ function tabEx(p,pr){
   return '<div class="stack"><div class="card flat" style="overflow-x:auto"><table class="table">'+head+rows+'</table></div><div class="sub">Em vermelho: fora da faixa de referência usada como exemplo. A leitura clínica é da médica. Dados fictícios.</div>'+vt('hist')+'</div>';
 }
 function pacRico(p,pr){
-  var tab={evol:'Evolução',tl:'Linha do tempo',cons:'Consultas',ex:'Exames'};if(pr.mem)tab.mem='Memória da relação';if(pr.anam)tab.anam='Anamnese';
+  var tab={evol:'Evolução',tl:'Linha do tempo',cons:'Consultas',ex:'Exames'};tab.bio='Bioimpedância';if(pr.mem)tab.mem='Memória da relação';if(pr.anam)tab.anam='Anamnese';
   var cur=tab[S.pacTab]?S.pacTab:'evol';
   var head='<div class="row wrap" style="gap:16px;align-items:flex-start"><div class="avt">'+p.n.split(' ')[2].charAt(0)+'</div><div style="flex:1;min-width:220px"><div style="font-size:22px;font-weight:800;letter-spacing:-.01em">'+p.n+'</div><div class="sub">'+pr.sexo+' · '+p.i+' · acompanhada por '+esc(pr.medica)+' desde '+pr.desde+'</div><div class="tags">'+pr.tags.map(function(t){return '<span class="pill ok">'+esc(t)+'</span>'}).join('')+'</div></div></div>'+
    '<div class="strip"><div><b>Medicações em uso</b>'+pr.medic.map(function(m){return esc(m[0])+' '+esc(m[1])+'<br><span class="sub">'+esc(m[2])+'</span>'}).join('<br>')+'</div><div><b>Alergias</b>'+esc(pr.alerg)+'</div><div><b>Próximo atendimento</b>'+esc(pr.prox)+'</div></div>';
   var tabs='<div class="tabs" role="tablist">'+Object.keys(tab).map(function(k){return '<button type="button" role="tab" aria-selected="'+(cur===k)+'" class="tab'+(cur===k?' on':'')+'" data-act="ptab" data-v="'+k+'">'+tab[k]+'</button>'}).join('')+'</div>';
   var body='';
-  if(cur==='evol')body=tabEvol(p,pr);else if(cur==='tl')body=tabTl(p,pr);else if(cur==='cons')body=tabCons(p,pr);else if(cur==='ex')body=tabEx(p,pr);
+  if(cur==='evol')body=tabEvol(p,pr);else if(cur==='tl')body=tabTl(p,pr);else if(cur==='cons')body=tabCons(p,pr);else if(cur==='ex')body=tabEx(p,pr);else if(cur==='bio')body=tabBio(p,pr);
   else if(cur==='mem')body='<div class="stack"><div class="row wrap"><h2>O que a clínica lembra sobre ela</h2>'+CT+'</div><ul class="mem"><li>Prefere contato por WhatsApp, à noite.</li><li>A filha, Ana, costuma acompanhar nas consultas.</li><li>Receio de medicamentos injetáveis, dito em abr/2026.</li><li>Meta dela: voltar a usar o vestido do casamento da filha, em março.</li></ul><div class="sub">Cada linha vem de algo que a médica registrou ou que a paciente disse e a médica confirmou. A paciente pode pedir para apagar.</div>'+vt('mem')+'</div>';
   else body='<div class="stack"><h2>Anamnese</h2><div class="grid2"><label class="lbl" for="an1">Queixa<textarea class="in" id="an1" rows="2" data-bind="anam.queixa">'+esc(S.anam.queixa)+'</textarea></label><label class="lbl" for="an2">História da doença atual<textarea class="in" id="an2" rows="2" data-bind="anam.hda">'+esc(S.anam.hda)+'</textarea></label><label class="lbl" for="an3">Antecedentes<textarea class="in" id="an3" rows="2" data-bind="anam.antec">'+esc(S.anam.antec)+'</textarea></label><label class="lbl" for="an4">Hábitos<textarea class="in" id="an4" rows="2" data-bind="anam.habitos">'+esc(S.anam.habitos)+'</textarea></label><label class="lbl" for="an5">Medicações<textarea class="in" id="an5" rows="2" data-bind="anam.medic">'+esc(S.anam.medic||'')+'</textarea></label></div><div class="sub">Preenchida pela IA a partir da última consulta gravada. Na versão real, o paciente preenche pelo celular antes e você só confere. O modelo dos campos será o das médicas do Instituto Edras.</div>'+vt('anam')+'</div>';
   return head+tabs+body;
@@ -552,6 +572,180 @@ function pacientes(){
   else det='<div class="row wrap" style="gap:16px"><div class="avt">'+p.n.split(' ')[2].charAt(0)+'</div><div><div style="font-size:22px;font-weight:800">'+p.n+'</div><div class="sub">'+p.i+' · último atendimento: '+p.u+'</div></div></div><div class="sub">Nesta demonstração, o histórico completo está nas pacientes A. (emagrecimento e metabolismo) e C. (diabetes tipo 2).</div>';
   return '<div class="page"><div class="head"><div class="t"><h1>Pacientes</h1></div><label class="lbl" for="busca" style="min-width:240px"><span class="sub">Buscar</span><input class="in" id="busca" type="search" placeholder="Nome ou motivo" value="'+esc(S.busca)+'" data-bind="busca"></label></div>'+
   '<div class="cols pacs"><div class="card flat lst">'+lista.map(function(x){return '<button type="button" class="it" data-act="pac" data-v="'+x.id+'" style="width:100%;border:0;border-top:1px solid var(--line2);background:'+(x.id===p.id?'var(--soft)':'none')+';text-align:left"><div class="nm">'+x.n+'<small>'+x.i+' · '+x.t+'</small></div>'+(PR[x.id]?'<span class="pill ok">histórico</span>':'')+'</button>'}).join('')+(lista.length?'':'<div class="it sub">Nenhum paciente encontrado.</div>')+'</div><div class="card stack">'+det+'</div></div></div>';
+}
+
+/* ---------- bioimpedância: importação (PDF, imagem ou foto) ---------- */
+PR.a.base=[2025,9];PR.c.base=[2026,1];
+var MESES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function bseg(){return {kg:null,pct:null,avaliacao:null}}
+function bcomp(){return {kg:null,min:null,max:null,pct:null,avaliacao:null}}
+function bsegs(){return {braco_direito:bseg(),braco_esquerdo:bseg(),tronco:bseg(),perna_direita:bseg(),perna_esquerda:bseg()}}
+function bimp(){return {braco_direito:null,braco_esquerdo:null,tronco:null,perna_direita:null,perna_esquerda:null}}
+function bsk(){return {paciente:{nome:null,sexo:null,idade:null,altura_cm:null,data:null,hora:null,equipamento:null},
+ composicao:{peso:bcomp(),gordura_corporal:bcomp(),sal_inorganico:bcomp(),proteina:bcomp(),agua_corporal:bcomp(),musculo:bcomp(),musculo_esqueletico:bcomp()},
+ pontuacao:null,
+ controle_peso:{peso_alvo:null,controle_de_peso:null,controle_de_gordura:null,controle_muscular:null},
+ obesidade:{imc:null,imc_avaliacao:null,taxa_gordura:null,taxa_gordura_avaliacao:null,obesidade_pct:null,obesidade_avaliacao:null,tipo_corpo:null},
+ gordura_segmentar:bsegs(),equilibrio_muscular:bsegs(),
+ outros:{gordura_visceral:null,taxa_metabolica_basal:null,peso_livre_de_gordura:null,gordura_subcutanea_pct:null,smi:null,idade_corpo:null,whr:null},
+ impedancia:{f20khz:bimp(),f100khz:bimp()},observacoes:[]}}
+var BIOPROMPT='Você extrai dados de relatórios impressos de análise de composição corporal por bioimpedância (por exemplo, Relaxmedic), enviados como imagem, foto ou PDF. Transcreva exatamente o que está impresso. Regras: (1) Não calcule, não interprete e não invente: se um campo não aparece ou está ilegível, use null. (2) Números com ponto decimal e sem unidades. (3) "avaliacao" é o texto impresso na coluna ou etiqueta (Alto, Baixo, Saudável, Alto risco, Normal...); para as barras de IMC, taxa de gordura e obesidade, use a faixa em destaque sob o valor. (4) Nas figuras do corpo, a coluna da esquerda da imagem é o lado esquerdo (L) e a da direita é o direito (R); o valor central é o tronco. Em "composicao", "min" e "max" são os limites entre parênteses ao lado da medição e "pct" é a proporção de peso. (5) Data em AAAA-MM-DD e hora em HH:MM. (6) Em "observacoes" liste campos ilegíveis ou dúvidas. Responda APENAS um JSON válido neste formato: '+JSON.stringify(bsk());
+var BLAB={peso:'Peso',gordura_corporal:'Gordura corporal',sal_inorganico:'Sal inorgânico',proteina:'Proteína',agua_corporal:'Água corporal',musculo:'Músculo',musculo_esqueletico:'Músculo esquelético'};
+var SLAB={braco_esquerdo:'Braço esquerdo',tronco:'Tronco',braco_direito:'Braço direito',perna_esquerda:'Perna esquerda',perna_direita:'Perna direita'};
+function bnum(x){if(x==null||x==='')return null;var n=typeof x==='number'?x:parseFloat(String(x).replace(/\s/g,'').replace('%','').replace(',','.'));return isFinite(n)?n:null}
+function bisTxt(k){return /^(nome|sexo|equipamento|data|hora|tipo_corpo|avaliacao)$|_avaliacao$/.test(k)}
+function bdate(s){if(!s)return null;s=String(s);var m=s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);m=s.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);return m?m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2):null}
+function bnorm(src,sk){
+  var out=Array.isArray(sk)?(Array.isArray(src)?src.map(function(x){return String(x)}):[]):{};if(Array.isArray(sk))return out;
+  Object.keys(sk).forEach(function(k){var sv=src&&src[k],kv=sk[k];
+    if(kv&&typeof kv==='object'){out[k]=bnorm(sv&&typeof sv==='object'?sv:null,kv)}
+    else if(bisTxt(k)){var t=sv==null?'':String(sv).trim();out[k]=k==='data'?bdate(t):(t||null)}
+    else out[k]=bnum(sv)});
+  return out}
+function bdisp(d){var o=JSON.parse(JSON.stringify(d));(function w(x){Object.keys(x).forEach(function(k){var v=x[k];if(v&&typeof v==='object'&&!Array.isArray(v))w(v);else if(typeof v==='number')x[k]=String(v).replace('.',',');else if(k==='data'&&v)x[k]=v.slice(8,10)+'/'+v.slice(5,7)+'/'+v.slice(0,4)})})(o);return o}
+function bleaves(o,pre,acc){acc=acc||[];Object.keys(o).forEach(function(k){if(k==='observacoes')return;var v=o[k];if(v&&typeof v==='object')bleaves(v,pre+k+'.',acc);else acc.push([pre+k,v])});return acc}
+function bget(o,path){return path.split('.').reduce(function(a,k){return a==null?a:a[k]},o)}
+function bsetp(o,path,v){var a=path.split('.'),l=a.pop(),t=a.reduce(function(x,k){return x[k]},o);t[l]=v}
+function bsame(a,b){var f=function(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\b(paciente|exemplo)\b/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()};return f(a)===f(b)}
+function bvalid(nd,p,pr){
+  var w=[],e=[],P=nd.paciente,c=nd.composicao,o=nd.obesidade;
+  if(c.peso.kg==null)e.push('O peso não foi lido. Preencha o campo Peso.');
+  if(!P.data)e.push('A data da medição não foi lida. Informe no formato dd/mm/aaaa.');
+  var nameBad=P.nome&&!bsame(P.nome,p.n);
+  if(!P.nome)w.push('O nome do paciente não aparece no relatório lido. Confira se é o paciente certo.');
+  else if(nameBad)w.push('O nome no relatório ('+P.nome+') é diferente do paciente selecionado ('+p.n+').');
+  if(P.altura_cm!=null&&Math.abs(P.altura_cm-pr.alt*100)>3)w.push('Altura do relatório ('+nf(P.altura_cm,0)+' cm) difere do cadastro ('+nf(pr.alt*100,0)+' cm).');
+  var sx=function(s){s=String(s||'').toLowerCase();return /^(f|mul)/.test(s)?'F':(/^(m|hom)/.test(s)?'M':'')};
+  if(sx(P.sexo)&&sx(pr.sexo)&&sx(P.sexo)!==sx(pr.sexo))w.push('Sexo no relatório ('+P.sexo+') difere do cadastro ('+pr.sexo+').');
+  var ida=parseInt(p.i,10);if(P.idade!=null&&ida&&Math.abs(P.idade-ida)>2)w.push('Idade no relatório ('+P.idade+') difere do cadastro ('+ida+').');
+  if(o.imc!=null&&c.peso.kg!=null&&P.altura_cm){var im=c.peso.kg/Math.pow(P.altura_cm/100,2);if(Math.abs(im-o.imc)>0.8)w.push('O IMC lido ('+nf(o.imc,1)+') não bate com peso e altura ('+nf(im,1)+'). Confira esses três campos.')}
+  if(o.taxa_gordura!=null&&c.gordura_corporal.kg!=null&&c.peso.kg){var tg=c.gordura_corporal.kg/c.peso.kg*100;if(Math.abs(tg-o.taxa_gordura)>1.5)w.push('A taxa de gordura lida ('+nf(o.taxa_gordura,1)+'%) não bate com massa gorda e peso ('+nf(tg,1)+'%). Confira.')}
+  if(c.peso.kg!=null&&(c.peso.kg<20||c.peso.kg>300))w.push('Peso fora do esperado ('+nf(c.peso.kg,1)+' kg). Confira.');
+  if(o.taxa_gordura!=null&&(o.taxa_gordura<2||o.taxa_gordura>70))w.push('Taxa de gordura fora do esperado. Confira.');
+  (nd.observacoes||[]).forEach(function(t){w.push('A IA avisou: '+t)});
+  return {w:w,e:e,nameBad:!!nameBad}}
+function bmIdx(pr,iso){var y=+iso.slice(0,4),m=+iso.slice(5,7),i=(y-pr.base[0])*12+(m-pr.base[1]);return Math.max(0,Math.min(pr.hoje,i))}
+function blabel(iso){return MESES[+iso.slice(5,7)-1]+'/'+iso.slice(2,4)}
+function bpts(d){var c=d.composicao,o=d.obesidade,x=d.outros;return [
+ ['peso','Peso','kg',1,c.peso.kg,null],
+ ['b_gp','Gordura corporal','%',1,o.taxa_gordura,null],
+ ['b_gk','Massa gorda','kg',1,c.gordura_corporal.kg,c.gordura_corporal.min!=null||c.gordura_corporal.max!=null?[c.gordura_corporal.min,c.gordura_corporal.max]:null],
+ ['b_me','Músculo esquelético','kg',1,c.musculo_esqueletico.kg,c.musculo_esqueletico.min!=null||c.musculo_esqueletico.max!=null?[c.musculo_esqueletico.min,c.musculo_esqueletico.max]:null],
+ ['b_ml','Massa livre de gordura','kg',1,x.peso_livre_de_gordura,null],
+ ['b_ag','Água corporal','kg',1,c.agua_corporal.kg,c.agua_corporal.min!=null||c.agua_corporal.max!=null?[c.agua_corporal.min,c.agua_corporal.max]:null],
+ ['b_imc','IMC','kg/m²',1,o.imc,[18.5,24.9]],
+ ['b_vis','Gordura visceral','grau',0,x.gordura_visceral,null],
+ ['b_tmb','Taxa metabólica basal','kcal',0,x.taxa_metabolica_basal,null],
+ ['b_pts','Pontuação corporal','pontos',0,d.pontuacao,null]]}
+function bremove(pr,id){
+  pr.ser.forEach(function(s){s.pts=s.pts.filter(function(p){return p[4]!==id})});
+  pr.ser=pr.ser.filter(function(s){return s.grp!=='bio'||s.pts.length});
+  pr.bio=(pr.bio||[]).filter(function(r){return r.id!==id});
+  var used={};pr.bio.forEach(function(r){used[r.m]=1});Object.keys(pr._bl||{}).forEach(function(m){if(!used[m]){delete pr.lab[m];delete pr._bl[m]}})}
+function bapply(pr,rec){
+  bremove(pr,rec.id);
+  var m=bmIdx(pr,rec.d.paciente.data);rec.m=m;
+  if(pr.lab[m]==null){pr.lab[m]=blabel(rec.d.paciente.data);pr._bl=pr._bl||{};pr._bl[m]=1}
+  bpts(rec.d).forEach(function(b){if(b[4]==null)return;
+    var s=pr.ser.filter(function(x){return x.k===b[0]})[0];
+    if(!s){s={k:b[0],n:b[1],u:b[2],d:b[3],grp:'bio',pts:[]};if(b[5])s.ref=b[5];pr.ser.push(s)}
+    else if(s.grp==='bio'&&b[5])s.ref=b[5];
+    s.pts.push([m,b[4],null,'bio',rec.id]);s.pts.sort(function(a,b2){return a[0]-b2[0]})});
+  pr.bio=(pr.bio||[]);pr.bio.push(rec);pr.bio.sort(function(a,b2){return (b2.d.paciente.data+(b2.d.paciente.hora||'')).localeCompare(a.d.paciente.data+(a.d.paciente.hora||''))})}
+function bsave(){
+  var st=lsGet('samia_bio_v1',{});PACIENTES.forEach(function(p){var pr=PR[p.id];if(pr&&pr.bio)st[p.id]=pr.bio.map(function(r){return {id:r.id,file:r.file,at:r.at,d:r.d}})});lsSet('samia_bio_v1',st)}
+function bload(){var st=lsGet('samia_bio_v1',{});Object.keys(st).forEach(function(id){var pr=PR[id];if(!pr||!Array.isArray(st[id]))return;st[id].forEach(function(r){try{r.d=bnorm(r.d,bsk());if(r.d.paciente.data&&r.d.composicao)bapply(pr,{id:r.id,file:r.file,at:r.at,d:r.d})}catch(e){}})})}
+bload();
+/* leitura do arquivo e chamada à IA */
+function b64(blob){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(String(r.result).split(',')[1])};r.onerror=function(){no(new Error('Não consegui ler o arquivo.'))};r.readAsDataURL(blob)})}
+async function bprep(file){
+  if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){if(file.size>20*1024*1024)throw new Error('O PDF tem mais de 20 MB. Envie um menor.');return {t:'document',mt:'application/pdf',data:await b64(file)}}
+  if(!/^image\//.test(file.type))throw new Error('Envie um PDF ou uma imagem (JPG, PNG).');
+  var bm;try{bm=await createImageBitmap(file)}catch(e){throw new Error('Não consegui abrir essa imagem. Tire a foto de novo ou envie JPG ou PNG.')}
+  var sc=Math.min(1,2200/Math.max(bm.width,bm.height)),cv=document.createElement('canvas');cv.width=Math.round(bm.width*sc);cv.height=Math.round(bm.height*sc);
+  var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(bm,0,0,cv.width,cv.height);
+  var bl=await new Promise(function(ok){cv.toBlob(ok,'image/jpeg',0.9)});return {t:'image',mt:'image/jpeg',data:await b64(bl)}}
+async function bstart(file){
+  if(!file)return;if(!API){S.bio={st:'err',err:'A IA não está configurada. Entre de novo com a senha de teste.'};render();return}
+  S.bio={st:'reading',file:file.name};render();
+  try{
+    var a=await bprep(file),ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},120000);
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:ctl.signal,headers:{'x-api-key':API,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},body:JSON.stringify({model:MODEL,max_tokens:5000,system:BIOPROMPT,messages:[{role:'user',content:[{type:a.t,source:{type:'base64',media_type:a.mt,data:a.data}},{type:'text',text:'Extraia todos os dados deste relatório de bioimpedância no formato pedido.'}]}]})});
+    clearTimeout(to);var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||('Erro '+r.status));
+    var txt=j.content.map(function(c){return c.text||''}).join(''),m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error('A IA não devolveu um resultado legível. Tente de novo ou envie uma imagem mais nítida.');
+    var d=bnorm(JSON.parse(m[0]),bsk());
+    if(d.composicao.peso.kg==null&&d.obesidade.imc==null)throw new Error('Não encontrei um relatório de bioimpedância nesse arquivo. Confira se é a página certa.');
+    S.bio={st:'review',file:file.name,d:bdisp(d),force:false};render();
+  }catch(e){S.bio={st:'err',err:e.name==='AbortError'?'A leitura demorou demais. Tente de novo.':'Falhou: '+e.message};render()}
+}
+/* telas */
+function pillAv(a){if(!a)return '';var t=String(a).toLowerCase();return '<span class="pill '+(/saud|normal/.test(t)?'ok':'warn')+'">'+esc(a)+'</span>'}
+function bi(path,lab,cls){var v=bget(S.bio.d,path);return '<input class="in bi'+(v==null||v===''?' miss':'')+(cls?' '+cls:'')+'" data-bind="bio:'+path+'" value="'+esc(v==null?'':v)+'" aria-label="'+esc(lab)+'" autocomplete="off">'}
+function bField(path,lab){return '<label class="lbl"><span>'+esc(lab)+'</span>'+bi(path,lab)+'</label>'}
+function bReview(p,pr){
+  var B=S.bio,nd=bnorm(B.d,bsk()),v=bvalid(nd,p,pr),lv=bleaves(nd,''),got=lv.filter(function(x){return x[1]!=null}).length;
+  var dup=(pr.bio||[]).filter(function(r){return r.d.paciente.data===nd.paciente.data&&(r.d.paciente.hora||'')===(nd.paciente.hora||'')})[0];
+  var rowsC=Object.keys(BLAB).map(function(k){var b='composicao.'+k;return '<tr><td><b>'+BLAB[k]+'</b></td><td>'+bi(b+'.kg',BLAB[k]+' medição (kg)')+'</td><td>'+bi(b+'.min',BLAB[k]+' mínimo')+'</td><td>'+bi(b+'.max',BLAB[k]+' máximo')+'</td><td>'+bi(b+'.pct',BLAB[k]+' proporção (%)')+'</td><td>'+bi(b+'.avaliacao',BLAB[k]+' avaliação')+'</td></tr>'}).join('');
+  var segT=function(g,tit){return '<div class="card flat" style="overflow-x:auto"><table class="table tbi"><tr><th>'+tit+'</th><th>kg</th><th>%</th><th>Avaliação</th></tr>'+Object.keys(SLAB).map(function(k){return '<tr><td><b>'+SLAB[k]+'</b></td><td>'+bi(g+'.'+k+'.kg',tit+' '+SLAB[k]+' kg')+'</td><td>'+bi(g+'.'+k+'.pct',tit+' '+SLAB[k]+' %')+'</td><td>'+bi(g+'.'+k+'.avaliacao',tit+' '+SLAB[k]+' avaliação')+'</td></tr>'}).join('')+'</table></div>'};
+  var imp='<div class="card flat" style="overflow-x:auto"><table class="table tbi"><tr><th>Z (Ω)</th>'+Object.keys(SLAB).map(function(k){return '<th>'+SLAB[k].replace('Braço ','Braço ').replace('Perna ','Perna ')+'</th>'}).join('')+'</tr>'+[['f20khz','20 kHz'],['f100khz','100 kHz']].map(function(f){return '<tr><td><b>'+f[1]+'</b></td>'+Object.keys(SLAB).map(function(k){return '<td>'+bi('impedancia.'+f[0]+'.'+k,'Impedância '+f[1]+' '+SLAB[k])+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>';
+  var warn=v.e.concat(v.w);
+  return '<div class="card stack bioreview"><div class="row wrap"><h2>Confira os dados lidos</h2><span class="sub sp">'+esc(B.file)+' · '+got+' de '+lv.length+' campos lidos</span></div>'+
+   '<div class="sub">A IA leu o relatório. Campos tracejados não foram encontrados. Corrija o que estiver errado antes de importar. Nada entra no prontuário até você confirmar.</div>'+
+   (warn.length?'<div class="card tint stack" style="gap:6px"><div class="sec">Atenção</div>'+warn.map(function(t){return '<div>⚠ '+esc(t)+'</div>'}).join('')+'</div>':'<div class="pill ok" style="align-self:flex-start">Nenhuma inconsistência encontrada</div>')+
+   (dup?'<div class="card tint"><div class="sec">Já importado</div>Há um relatório com a mesma data e hora neste paciente. Importar de novo substitui o anterior.</div>':'')+
+   '<h3>Identificação</h3><div class="grid3">'+bField('paciente.nome','Nome no relatório')+bField('paciente.sexo','Sexo')+bField('paciente.idade','Idade')+bField('paciente.altura_cm','Altura (cm)')+bField('paciente.data','Data (dd/mm/aaaa)')+bField('paciente.hora','Hora')+bField('paciente.equipamento','Equipamento')+'</div>'+
+   '<h3>Análise da composição corporal</h3><div class="card flat" style="overflow-x:auto"><table class="table tbi"><tr><th></th><th>Medição (kg)</th><th>Mín.</th><th>Máx.</th><th>Proporção (%)</th><th>Avaliação</th></tr>'+rowsC+'</table></div>'+
+   '<h3>Pontuação e controle de peso</h3><div class="grid3">'+bField('pontuacao','Pontuação corporal (0 a 100)')+bField('controle_peso.peso_alvo','Peso alvo (kg)')+bField('controle_peso.controle_de_peso','Controle de peso (kg)')+bField('controle_peso.controle_de_gordura','Controle de gordura (kg)')+bField('controle_peso.controle_muscular','Controle muscular (kg)')+'</div>'+
+   '<h3>Avaliação da obesidade</h3><div class="grid3">'+bField('obesidade.imc','IMC (kg/m²)')+bField('obesidade.imc_avaliacao','IMC: avaliação')+bField('obesidade.taxa_gordura','Taxa de gordura corporal (%)')+bField('obesidade.taxa_gordura_avaliacao','Taxa de gordura: avaliação')+bField('obesidade.obesidade_pct','Obesidade, peso atual/alvo (%)')+bField('obesidade.obesidade_avaliacao','Obesidade: avaliação')+bField('obesidade.tipo_corpo','Tipo de corpo')+'</div>'+
+   '<h3>Análise de gordura segmentar</h3>'+segT('gordura_segmentar','Gordura')+'<h3>Equilíbrio muscular</h3>'+segT('equilibrio_muscular','Músculo')+
+   '<h3>Outros indicadores</h3><div class="grid3">'+bField('outros.gordura_visceral','Grau de gordura visceral')+bField('outros.taxa_metabolica_basal','Taxa metabólica basal (kcal)')+bField('outros.peso_livre_de_gordura','Peso livre de gordura (kg)')+bField('outros.gordura_subcutanea_pct','Gordura subcutânea (%)')+bField('outros.smi','SMI (kg/m²)')+bField('outros.idade_corpo','Idade do corpo')+bField('outros.whr','WHR')+'</div>'+
+   '<h3>Impedância bioelétrica</h3>'+imp+
+   (v.nameBad?'<label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" data-act="bioforce" '+(B.force?'checked':'')+'><span>O nome é diferente do paciente selecionado. Confirmo que este relatório é desta pessoa (ou que é um teste).</span></label>':'')+
+   (B.tried&&(v.e.length||(v.nameBad&&!B.force))?'<div style="color:var(--bad);font-weight:600">Corrija os itens marcados em Atenção para importar.</div>':'')+'<div class="row wrap" style="gap:10px"><button type="button" class="btn lg" data-act="bioconfirm">Confirmar e importar para a evolução</button><button type="button" class="btn soft lg" data-act="biodiscard">Descartar</button></div></div>';
+}
+function rbar(v,mn,mx){
+  if(v==null)return '';var lo=0,hi=Math.max(v*1.12,(mx!=null?mx:v)*1.4),W=110,X=function(x){return Math.max(2,Math.min(W-2,W*(x-lo)/(hi-lo)))};
+  var out=(mn!=null&&v<mn)||(mx!=null&&v>mx),band=(mn!=null&&mx!=null)?'<rect x="'+X(mn)+'" y="3" width="'+(X(mx)-X(mn))+'" height="8" rx="4" fill="var(--soft)" stroke="var(--acc2)" stroke-width="1"/>':'';
+  return '<svg viewBox="0 0 '+W+' 14" width="'+W+'" height="14" style="max-width:100%" aria-hidden="true"><rect x="0" y="5" width="'+W+'" height="4" rx="2" fill="var(--line)"/>'+band+'<circle cx="'+X(v)+'" cy="7" r="5.5" fill="'+(out?'var(--bad)':'var(--acc)')+'" stroke="var(--surf)" stroke-width="2"/></svg>'}
+function nfv(v,d){return v==null?'—':nf(v,d==null?1:d)}
+function bMap(tit,g){return '<div class="card stack" style="gap:10px"><h3 style="margin:0">'+tit+'</h3><div class="bmap">'+['braco_esquerdo','tronco','braco_direito','perna_esquerda',null,'perna_direita'].map(function(k){if(!k)return '<div></div>';var s=g[k];return '<div class="bcell'+(k==='tronco'?' tr':'')+'"><span class="sec">'+SLAB[k]+'</span><b class="num">'+nfv(s.kg)+' kg</b><span class="sub">'+nfv(s.pct)+'%</span>'+pillAv(s.avaliacao)+'</div>'}).join('')+'</div></div>'}
+function bView(p,pr){
+  var L=pr.bio,r=L.filter(function(x){return x.id===S.bioSel})[0]||L[0],d=r.d,P=d.paciente,c=d.composicao,o=d.obesidade,ot=d.outros,cp=d.controle_peso;
+  var idx=L.indexOf(r),prev=L[idx+1],dl=function(a,b,dg){if(a==null||b==null)return '—';var x=a-b;return (x>0?'▲ +':(x<0?'▼ −':'■ '))+nf(Math.abs(x),dg)};
+  var chips=L.length>1?'<div class="row wrap" style="gap:8px">'+L.map(function(x){var dt=x.d.paciente.data;return '<button type="button" class="chip'+(x.id===r.id?' on':'')+'" data-act="biosel" data-v="'+x.id+'">'+dt.slice(8,10)+'/'+dt.slice(5,7)+'/'+dt.slice(0,4)+'</button>'}).join('')+'</div>':'';
+  var rows=Object.keys(BLAB).map(function(k){var b=c[k];return '<tr><td><b>'+BLAB[k]+'</b></td><td class="num">'+nfv(b.kg)+' <span class="sub">kg</span></td><td class="sub">'+(b.min!=null?nfv(b.min)+'–'+nfv(b.max):'—')+'</td><td>'+rbar(b.kg,b.min,b.max)+'</td><td class="num">'+nfv(b.pct)+'%</td><td>'+pillAv(b.avaliacao)+'</td></tr>'}).join('');
+  var kp=[['Gordura corporal',nfv(o.taxa_gordura)+'%',pillAv(o.taxa_gordura_avaliacao)],['IMC',nfv(o.imc),pillAv(o.imc_avaliacao)],['Gordura visceral',nfv(ot.gordura_visceral,0),'grau'],['Taxa metabólica basal',nfv(ot.taxa_metabolica_basal,0),'kcal'],['Idade do corpo',nfv(ot.idade_corpo,0),'anos'],['Peso livre de gordura',nfv(ot.peso_livre_de_gordura),'kg'],['Gordura subcutânea',nfv(ot.gordura_subcutanea_pct)+'%',''],['SMI',nfv(ot.smi),'kg/m²'],['WHR',nfv(ot.whr,2),'']].map(function(x){return '<div><small>'+x[0]+'</small><b>'+x[1]+'</b><small>'+x[2]+'</small></div>'}).join('');
+  var cmp=prev?'<div class="card stack" style="gap:8px"><h3 style="margin:0">Comparação com '+prev.d.paciente.data.slice(8,10)+'/'+prev.d.paciente.data.slice(5,7)+'/'+prev.d.paciente.data.slice(0,4)+'</h3><div style="overflow-x:auto"><table class="table tbi"><tr><th></th><th>Anterior</th><th>Esta</th><th>Variação</th></tr>'+[['Peso (kg)',prev.d.composicao.peso.kg,c.peso.kg,1],['Gordura corporal (%)',prev.d.obesidade.taxa_gordura,o.taxa_gordura,1],['Massa gorda (kg)',prev.d.composicao.gordura_corporal.kg,c.gordura_corporal.kg,1],['Músculo esquelético (kg)',prev.d.composicao.musculo_esqueletico.kg,c.musculo_esqueletico.kg,1],['IMC',prev.d.obesidade.imc,o.imc,1],['Gordura visceral',prev.d.outros.gordura_visceral,ot.gordura_visceral,0],['Pontuação',prev.d.pontuacao,d.pontuacao,0]].map(function(x){return '<tr><td>'+x[0]+'</td><td class="num">'+nfv(x[1],x[3])+'</td><td class="num">'+nfv(x[2],x[3])+'</td><td class="num">'+dl(x[2],x[1],x[3])+'</td></tr>'}).join('')+'</table></div></div>':'';
+  var imp='<div class="card flat" style="overflow-x:auto"><table class="table tbi"><tr><th>Z (Ω)</th>'+Object.keys(SLAB).map(function(k){return '<th>'+SLAB[k]+'</th>'}).join('')+'</tr>'+[['f20khz','20 kHz'],['f100khz','100 kHz']].map(function(f){return '<tr><td><b>'+f[1]+'</b></td>'+Object.keys(SLAB).map(function(k){return '<td class="num">'+nfv(d.impedancia[f[0]][k])+'</td>'}).join('')+'</tr>'}).join('')+'</table></div>';
+  return '<div class="stack">'+chips+'<div class="card stack"><div class="row wrap" style="gap:14px;align-items:flex-start"><div style="flex:1;min-width:200px"><div class="sec">Relatório de bioimpedância</div><div style="font-size:18px;font-weight:800">'+P.data.slice(8,10)+'/'+P.data.slice(5,7)+'/'+P.data.slice(0,4)+(P.hora?' às '+esc(P.hora):'')+'</div><div class="sub">'+esc(P.equipamento||'Equipamento não identificado')+' · nome no relatório: '+esc(P.nome||'não lido')+' · arquivo: '+esc(r.file||'')+'</div></div><div class="score"><b class="num">'+nfv(d.pontuacao,0)+'</b><span>/100 pontos</span></div></div>'+
+   '<div class="pk">'+kp+'</div></div>'+
+   '<div class="card stack" style="gap:8px"><h3 style="margin:0">Composição corporal</h3><div style="overflow-x:auto"><table class="table tbi"><tr><th></th><th>Medição</th><th>Faixa</th><th>Posição</th><th>Proporção</th><th>Avaliação</th></tr>'+rows+'</table></div><div class="sub">Obesidade (peso atual / peso alvo): '+nfv(o.obesidade_pct,0)+'% · '+esc(o.obesidade_avaliacao||'—')+' · tipo de corpo: '+esc(o.tipo_corpo||'—')+'</div></div>'+
+   '<div class="card stack" style="gap:8px"><h3 style="margin:0">Controle de peso</h3><div class="pk"><div><small>Peso alvo</small><b>'+nfv(cp.peso_alvo)+'</b><small>kg</small></div><div><small>Controle de peso</small><b>'+nfv(cp.controle_de_peso)+'</b><small>kg</small></div><div><small>Controle de gordura</small><b>'+nfv(cp.controle_de_gordura)+'</b><small>kg</small></div><div><small>Controle muscular</small><b>'+nfv(cp.controle_muscular)+'</b><small>kg</small></div></div></div>'+
+   '<div class="bmaps">'+bMap('Gordura segmentar',d.gordura_segmentar)+bMap('Equilíbrio muscular',d.equilibrio_muscular)+'</div>'+cmp+
+   '<div class="card stack" style="gap:8px"><h3 style="margin:0">Impedância bioelétrica</h3>'+imp+'</div>'+
+   '<div class="row wrap" style="gap:10px;align-items:center"><span class="sub" style="flex:1;min-width:220px">Valores como impressos no relatório, sem interpretação do sistema. A leitura clínica é da médica. Os dados ficam só neste navegador.</span><button type="button" class="btn soft sm" data-act="biodel" data-v="'+r.id+'">Remover esta importação</button></div></div>';
+}
+function tabBio(p,pr){
+  var B=S.bio,L=pr.bio||[];
+  if(B&&B.st==='review')return '<div class="stack">'+bReview(p,pr)+vt('bio')+'</div>';
+  var imp='<div class="card stack biodrop" id="biodrop"><div class="row wrap"><h2>Importar bioimpedância</h2><span class="sub sp">PDF, imagem ou foto na hora</span></div>'+
+   '<div class="sub">A IA lê o relatório e preenche todos os campos: composição, gordura e músculo por segmento, indicadores e impedância. Você confere e confirma. Os valores entram na evolução e na linha do tempo.</div>'+
+   '<label class="row" style="gap:10px;align-items:flex-start"><input type="checkbox" data-act="bioconsent" '+(S.bioOk?'checked':'')+'><span class="sub">Este é um relatório de teste, ou o paciente autorizou o envio para leitura por IA. O arquivo é enviado à Anthropic (EUA) só para leitura e esta página não o guarda.</span></label>'+
+   (B&&B.st==='reading'?'<div class="row" style="gap:12px"><span class="spin" aria-hidden="true"></span><span>A IA está lendo '+esc(B.file)+'. Leva até 1 minuto.</span></div>':'')+
+   (B&&B.st==='err'?'<div class="card tint"><b>'+esc(B.err)+'</b></div>':'')+
+   '<div class="row wrap" style="gap:10px"><button type="button" class="btn lg" data-act="biopick" '+(S.bioOk&&!(B&&B.st==='reading')?'':'disabled')+'>Enviar PDF ou imagem</button><button type="button" class="btn soft lg" data-act="biocam" '+(S.bioOk&&!(B&&B.st==='reading')?'':'disabled')+'>Tirar foto agora</button></div>'+
+   '<div class="sub">Dica para foto: relatório inteiro no quadro, sem sombra nem reflexo, de cima e reto.</div>'+
+   '<input type="file" id="biofile" data-act="biofile" accept="application/pdf,image/*" hidden><input type="file" id="biocamf" data-act="biofile" accept="image/*" capture="environment" hidden></div>';
+  return '<div class="stack">'+(L.length?bView(p,pr):'<div class="card tint"><b>Nenhum relatório importado ainda.</b> Importe o primeiro abaixo para alimentar a evolução.</div>')+imp+vt('bio')+'</div>';
+}
+
+function bconfirm(){
+  var p=PACIENTES.filter(function(x){return x.id===S.pac})[0],pr=PR[S.pac];if(!p||!pr||!S.bio||!S.bio.d)return;
+  var nd=bnorm(S.bio.d,bsk()),v=bvalid(nd,p,pr);
+  if(v.e.length||(v.nameBad&&!S.bio.force)){S.bio.tried=true;render();window.scrollTo(0,0);toast('Corrija os itens marcados em Atenção');return}
+  (pr.bio||[]).filter(function(r){return r.d.paciente.data===nd.paciente.data&&(r.d.paciente.hora||'')===(nd.paciente.hora||'')}).forEach(function(r){bremove(pr,r.id)});
+  var rec={id:Date.now(),file:S.bio.file,at:new Date().toISOString(),d:nd},n=bleaves(nd,'').filter(function(x){return x[1]!=null}).length;
+  bapply(pr,rec);bsave();S.bioSel=rec.id;S.bio=null;S.pacTab='bio';render();window.scrollTo(0,0);toast('Bioimpedância importada: '+n+' campos');
 }
 function consulta(){
   var c=S.cons,rec=c==='rec';
@@ -752,10 +946,16 @@ document.addEventListener('click',function(e){
     case 'agnew':S.formAg=true;S.agErr='';render();break;
     case 'agcancel':S.formAg=false;render();break;
     case 'agsave':agSave();break;
-    case 'pac':S.pac=v;S.pacSer=null;S.pacOpen=null;S.pacFilt='all';render();break;
+    case 'pac':S.pac=v;S.pacSer=null;S.pacOpen=null;S.pacFilt='all';S.bio=null;S.bioSel=null;render();break;
     case 'pser':S.pacSer=v;render();break;
     case 'pfilt':S.pacFilt=v;render();break;
     case 'pexp':S.pacOpen=(S.pacOpen===v?'':v);render();break;
+    case 'biopick':if(S.bioOk){var f1=$('#biofile');if(f1)f1.click()}break;
+    case 'biocam':if(S.bioOk){var f2=$('#biocamf');if(f2)f2.click()}break;
+    case 'biosel':S.bioSel=+v;render();break;
+    case 'biodiscard':S.bio=null;render();break;
+    case 'biodel':{var pq=PR[S.pac];if(pq){bremove(pq,+v);bsave();S.bioSel=null;render();toast('Importação removida')}break}
+    case 'bioconfirm':bconfirm();break;
     case 'ptab':S.pacTab=v;render();break;
     case 'vote':S.votes[k]=(S.votes[k]===v?undefined:v);if(S.votes[k]===undefined)delete S.votes[k];lsSet('samia_votes',S.votes);render();break;
     case 'cf':S.conf[v]=1;render();break;
@@ -764,15 +964,21 @@ document.addEventListener('click',function(e){
     case 'copy':copiar();break;
   }
 });
+document.addEventListener('dragover',function(e){if(e.target.closest&&e.target.closest('#biodrop'))e.preventDefault()});
+document.addEventListener('drop',function(e){var z=e.target.closest&&e.target.closest('#biodrop');if(!z)return;e.preventDefault();if(!S.bioOk){toast('Marque a autorização antes de enviar');return}var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(f)bstart(f)});
 document.addEventListener('change',function(e){
   var el=e.target;if(!el.getAttribute)return;var a=el.getAttribute('data-act');
   if(a==='consent'){S.consent=el.checked;render()}
+  if(a==='bioconsent'){S.bioOk=el.checked;render()}
+  if(a==='bioforce'&&S.bio){S.bio.force=el.checked;render()}
+  if(a==='biofile'){var fl0=el.files&&el.files[0];el.value='';if(fl0)bstart(fl0)}
   if(a==='ptog'){var pp=S.pendAI[+el.getAttribute('data-k')];if(pp)pp.on=el.checked}
 });
 document.addEventListener('input',function(e){
   var el=e.target,b=el.getAttribute&&el.getAttribute('data-bind');if(!b)return;
   if(b==='busca'){S.busca=el.value;render();var n=$('#busca');n.focus();n.setSelectionRange(el.value.length,el.value.length);return}
   if(b==='zapnum'){S.zap=el.value;return}
+  if(b.indexOf('bio:')===0){if(S.bio&&S.bio.d)bsetp(S.bio.d,b.slice(4),el.value);return}
   if(b==='msg'){S.msg=el.value;S.msgEdited=true;var bb=$('.phone .bub');if(bb)bb.textContent=el.value;return}
   if(b==='ed')return;
   if(b==='tx'){S.tx=el.value;var g=$('#go');if(g)g.disabled=!S.tx.trim()||gravando;return}
